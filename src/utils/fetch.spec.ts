@@ -5,11 +5,11 @@ import { convertFetchSuccess, convertFetchReject } from './fetch';
 describe('utils fetch', () => {
     it('images are downloaded as a binary blob', (done) => {
         const contentType = 'image/jpeg';
-        const result = new FetchResponse(
+        const result = (new FetchResponse(
             200,
             'this is a binary image',
             contentType,
-        ) as unknown as Response;
+        ) as unknown) as Response;
         const promise = convertFetchSuccess('url', 'body', 0, result);
 
         promise.then((response) => {
