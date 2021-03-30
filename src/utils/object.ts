@@ -1,37 +1,21 @@
 ﻿/**
- * @module saxo/utils/object
- * @ignore
- */
-
-// -- Local variables section --
-
-// -- Local methods section --
-
-// -- Exported methods section --
-
-/**
- * @namespace saxo.utils.object
- */
-
-/**
  * Extends an object with another, following the same syntax as `$.extend` - see {@link http://api.jquery.com/jquery.extend/}.
  * @alias saxo.utils.object.extend
  * @param {boolean} deep - If the argument list begins true the object will be deep copied.
  * @param {...object} objects - Merges properties from later objects on to the first object.
- * @static
  */
-function extend() {
+function extend(...args: any[]) {
     // optimized extend
     // speed tested - http://jsperf.com/jquery-extend-vs-custom
-    const deep = arguments[0] === true;
-    const l = arguments.length;
+    const deep = args[0] === true;
+    const l = args.length;
     let i = deep ? 1 : 0;
-    const result = arguments[i++] || {};
+    const result = args[i++] || {};
     let current;
     let val;
 
     for (; i < l; i++) {
-        current = arguments[i];
+        current = args[i];
         for (const prop in current) {
             if (current.hasOwnProperty(prop)) {
                 val = current[prop];
@@ -51,6 +35,5 @@ function extend() {
     }
     return result;
 }
-// -- Export section --
 
 export { extend };
