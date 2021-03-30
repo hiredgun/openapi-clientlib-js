@@ -448,7 +448,7 @@
     },
     "overrides": [
         {
-            "files": ["*.spec.js", "src/test/**/*.js"],
+            "files": ["*.spec.[jt]s", "src/test/**/*.[jt]s"],
             "env": {
                 "jest": true
             },
