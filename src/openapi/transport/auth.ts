@@ -8,6 +8,7 @@
 import log from '../../log';
 import type AuthProvider from '../authProvider';
 import TransportCore from './core';
+import type * as types from './types';
 
 const LOG_AREA = 'TransportAuth';
 
@@ -16,12 +17,6 @@ const LOG_AREA = 'TransportAuth';
 const DEFAULT_AUTH_ERRORS_DEBOUNCE_PERIOD = 30000; // ms
 
 // -- Local methods section --
-
-type Methods = 'get' | 'put' | 'post' | 'delete' | 'patch' | 'options' | 'head';
-
-type Options = {
-    authErrorsDebouncePeriod?: number;
-};
 
 
 
@@ -60,7 +55,7 @@ class TransportAuth {
     constructor(
         baseUrl: string,
         authProvider: AuthProvider,
-        options?: Options,
+        options?: types.Options,
     ) {
         if (!authProvider) {
             throw new Error('transport auth created without a auth provider');
@@ -111,7 +106,7 @@ class TransportAuth {
         throw result;
     }
 
-    private makeTransportMethod = (method: Methods) => {
+    private makeTransportMethod = (method: types.Methods) => {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         return (
             servicePath: string,
