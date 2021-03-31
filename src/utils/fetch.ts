@@ -54,7 +54,7 @@ export function convertFetchReject(
     });
 
     const networkError = {
-        message: error && error.message ? error.message : error,
+        message: error?.message ? error.message : error,
         isNetworkError: true,
     };
 

@@ -4,18 +4,32 @@
  * @param {boolean} deep - If the argument list begins true the object will be deep copied.
  * @param {...object} objects - Merges properties from later objects on to the first object.
  */
-function extend(...args: any[]) {
+
+type $Object = Record<string, unknown>;
+
+function extend(
+    arg1: boolean,
+    arg2: $Object | null,
+    arg3: $Object,
+    ...restArgs: Array<$Object>
+): $Object;
+function extend(
+    arg1: $Object | null,
+    arg2: $Object,
+    ...restArgs: Array<$Object>
+): $Object;
+function extend(arg1: boolean | $Object | null, ...restArgs: any[]): $Object {
     // optimized extend
     // speed tested - http://jsperf.com/jquery-extend-vs-custom
-    const deep = args[0] === true;
-    const l = args.length;
-    let i = deep ? 1 : 0;
-    const result = args[i++] || {};
+    const deep = arg1 === true;
+    const l = restArgs.length;
+    let i = 0;
+    const result = (deep ? restArgs[i++] : arg1) || {};
     let current;
     let val;
 
     for (; i < l; i++) {
-        current = args[i];
+        current = restArgs[i];
         for (const prop in current) {
             if (current.hasOwnProperty(prop)) {
                 val = current[prop];
