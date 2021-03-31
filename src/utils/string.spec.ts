@@ -18,10 +18,6 @@ describe('String utils', () => {
         expect(format('lorem {foo} dolor {1} amet', 'ipsum', 'sit')).toBe(
             'lorem {foo} dolor sit amet',
         );
-
-        expect(format('lorem {foo} dolor {1} amet', null)).toBe(
-            'lorem {foo} dolor {1} amet',
-        );
     });
 
     it('startsWith works', () => {

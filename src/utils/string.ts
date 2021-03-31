@@ -6,7 +6,9 @@ const formatRx = /\{([^{]+?)\}/g;
  * @param {(Object|...string)} args - Accepts either an object with keys or the arguments will be indexed.
  * @returns {string}
  */
-function format(sTemplate: string, ...args: any[]) {
+function format(sTemplate: string, args: Record<string, unknown>): string;
+function format(sTemplate: string, ...args: Array<number | string>): string;
+function format(sTemplate: string, ...args: any) {
     if (typeof args[0] === 'object' && args[0] !== null) {
         args = args[0];
     }
