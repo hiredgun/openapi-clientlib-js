@@ -5,7 +5,7 @@
  * @param {...object} objects - Merges properties from later objects on to the first object.
  */
 
-type $Object = Record<string, unknown>;
+type $Object = Record<string, any>;
 
 function extend(
     arg1: boolean,
