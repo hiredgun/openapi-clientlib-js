@@ -1,35 +1,28 @@
-﻿/**
+﻿import type { ExtendInterface } from './types';
+
+type $Object = Record<string, any>;
+
+/**
  * Extends an object with another, following the same syntax as `$.extend` - see {@link http://api.jquery.com/jquery.extend/}.
  * @alias saxo.utils.object.extend
  * @param {boolean} deep - If the argument list begins true the object will be deep copied.
  * @param {...object} objects - Merges properties from later objects on to the first object.
  */
-
-type $Object = Record<string, any>;
-
-function extend(
-    arg1: boolean,
-    arg2: $Object | null,
-    arg3: $Object,
-    ...restArgs: Array<$Object>
-): $Object;
-function extend(
-    arg1: $Object | null,
-    arg2: $Object,
-    ...restArgs: Array<$Object>
-): $Object;
-function extend(arg1: boolean | $Object | null, ...restArgs: any[]): $Object {
+const extend: ExtendInterface = (
+    arg1: true | $Object | null,
+    ...restArgs: Array<$Object | null>
+) => {
     // optimized extend
     // speed tested - http://jsperf.com/jquery-extend-vs-custom
     const deep = arg1 === true;
     const l = restArgs.length;
     let i = 0;
-    const result = (deep ? restArgs[i++] : arg1) || {};
-    let current;
+    const result = ((deep ? restArgs[i++] : arg1) || {}) as $Object;
+    let current: $Object;
     let val;
 
     for (; i < l; i++) {
-        current = restArgs[i];
+        current = restArgs[i] as $Object;
         for (const prop in current) {
             if (current.hasOwnProperty(prop)) {
                 val = current[prop];
@@ -48,6 +41,6 @@ function extend(arg1: boolean | $Object | null, ...restArgs: any[]): $Object {
         }
     }
     return result;
-}
+};
 
 export { extend };
