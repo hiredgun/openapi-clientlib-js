@@ -34,27 +34,25 @@ export interface Options extends ConfigurableOptions, InternalOptions {}
  * @param {string} [options.negativePattern="-{0}"] - The negative pattern to use with '{0}' as the placeholder for the non-negative number.
  */
 class NumberFormatting {
-    private options: Options = {
-        groupSizes: [3],
-        groupSeparator: ',',
-        decimalSeparator: '.',
-        negativePattern: '-{0}',
-        unitSuffixThousand: 'k',
-        unitSuffixMillion: 'm',
-        unitSuffixBillion: 'bn',
-        negativePre: '',
-        negativePost: '',
-    };
+    groupSizes = [3];
+    groupSeparator = ',';
+    decimalSeparator = '.';
+    negativePattern = '-{0}';
+    unitSuffixThousand = 'k';
+    unitSuffixMillion = 'm';
+    unitSuffixBillion = 'bn';
+    negativePre = '';
+    negativePost = '';
 
     constructor(options?: Partial<Options>) {
-        extend(this.options, options || {});
+        extend(this, options || {});
 
-        this.options.negativePre = this.options.negativePattern.substr(
+        this.negativePre = this.negativePattern.substr(
             0,
-            this.options.negativePattern.indexOf('{'),
+            this.negativePattern.indexOf('{'),
         );
-        this.options.negativePost = this.options.negativePattern.substr(
-            this.options.negativePattern.indexOf('}') + 1,
+        this.negativePost = this.negativePattern.substr(
+            this.negativePattern.indexOf('}') + 1,
         );
     }
 
@@ -64,7 +62,7 @@ class NumberFormatting {
      * @returns {number} parsed value
      */
     parse(value: string) {
-        return parseNumber(value, this.options);
+        return parseNumber(value, this);
     }
 
     /**
@@ -79,7 +77,7 @@ class NumberFormatting {
             decimals = this.getActualDecimals(num);
         }
 
-        return formatNumber(num, decimals, this.options);
+        return formatNumber(num, decimals, this);
     }
 
     /**
@@ -103,7 +101,7 @@ class NumberFormatting {
                 maxDecimals,
                 Math.max(minDecimals, this.getActualDecimals(num)),
             ),
-            this.options,
+            this,
         );
     }
 
@@ -113,7 +111,7 @@ class NumberFormatting {
      * @returns {string}
      */
     shortFormat(number: number) {
-        return shortFormat(number, this.options);
+        return shortFormat(number, this);
     }
 
     /**
