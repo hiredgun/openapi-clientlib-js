@@ -1,10 +1,10 @@
-import type { Options } from './number-formatting';
+import type { FormattingOptions } from './number-formatting';
 
-interface FormatOptions extends Options {
+interface Options extends FormattingOptions {
     isHideZeroTail?: boolean;
 }
 
-function formatNegativeNumber(str: string, options: FormatOptions) {
+function formatNegativeNumber(str: string, options: Options) {
     return options.negativePattern.replace('{0}', str);
 }
 
@@ -29,11 +29,7 @@ function convertNumberToString(number: number, precision: number) {
  * @param precision
  * @param { groupSizes, groupSeparator, decimalSeparator, isHideZeroTail } options
  */
-function expandNumber(
-    number: number,
-    precision: number,
-    options: FormatOptions,
-) {
+function expandNumber(number: number, precision: number, options: Options) {
     const {
         groupSizes,
         groupSeparator,
@@ -131,7 +127,7 @@ function isNumeric(
 function formatNumber(
     inputNumber: number | string | null | undefined,
     decimals: number,
-    options: FormatOptions,
+    options: Options,
 ) {
     if (!isNumeric(inputNumber)) {
         return '';

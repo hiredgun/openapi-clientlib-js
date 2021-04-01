@@ -1,11 +1,11 @@
 import { endsWith, startsWith } from '../utils/string';
-import type { Options } from './number-formatting';
+import type { FormattingOptions } from './number-formatting';
 
 const NO_BREAK_SPACE_REGEX = /\u00A0/g;
 
 export function parseNumberNegativePattern(
     value: string,
-    options: Options,
+    options: FormattingOptions,
     tryFallback = false,
 ) {
     const pre = options.negativePre.replace(NO_BREAK_SPACE_REGEX, ' ');
@@ -26,7 +26,10 @@ export function parseNumberNegativePattern(
     return ['', value];
 }
 
-function parseNumber(value: string | null | undefined, options: Options) {
+function parseNumber(
+    value: string | null | undefined,
+    options: FormattingOptions,
+) {
     if (value == null) {
         return NaN;
     }

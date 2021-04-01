@@ -5,7 +5,7 @@ import shortFormat from './short-format';
 
 const numberOfZerosRx = /0+$/;
 
-export interface ConfigurableOptions {
+interface ConfigurableOptions {
     groupSizes: number[];
     groupSeparator: string;
     decimalSeparator: string;
@@ -20,7 +20,9 @@ interface InternalOptions {
     negativePost: string;
 }
 
-export interface Options extends ConfigurableOptions, InternalOptions {}
+export interface FormattingOptions
+    extends ConfigurableOptions,
+        InternalOptions {}
 
 /**
  * A class which does number formatting and parsing.
@@ -33,7 +35,7 @@ export interface Options extends ConfigurableOptions, InternalOptions {}
  * @param {string} [options.decimalSeparator="."] - The character used for decimal searation E.g.',' in Danish.
  * @param {string} [options.negativePattern="-{0}"] - The negative pattern to use with '{0}' as the placeholder for the non-negative number.
  */
-class NumberFormatting {
+class NumberFormatting implements FormattingOptions {
     groupSizes = [3];
     groupSeparator = ',';
     decimalSeparator = '.';
@@ -44,7 +46,7 @@ class NumberFormatting {
     negativePre = '';
     negativePost = '';
 
-    constructor(options?: Partial<Options>) {
+    constructor(options?: Partial<ConfigurableOptions>) {
         extend(this, options || {});
 
         this.negativePre = this.negativePattern.substr(
