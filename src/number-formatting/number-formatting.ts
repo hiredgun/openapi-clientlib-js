@@ -71,7 +71,8 @@ class NumberFormatting implements FormattingOptions {
      * Formats a number into a localized string.
      * @param {number} num - The number to format.
      * @param {number} [decimals] - The number of decimals to display after the decimal point.
-     *                              If undefined then the number is formatted with however many decimal places it needs to display the number (upto 8).
+     *                              If undefined then the number is formatted with however many
+     *                              decimal places it needs to display the number (upto 8).
      * @returns {string}
      */
     format(num: number, decimals?: number) {
