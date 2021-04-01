@@ -1,17 +1,13 @@
-/**
- * @module saxo/number-formatting/parse
- * @ignore
- */
-
 import { endsWith, startsWith } from '../utils/string';
-
-// -- Local variables section --
+import type { Options } from './number-formatting';
 
 const NO_BREAK_SPACE_REGEX = /\u00A0/g;
 
-// -- Exported methods section --
-
-export function parseNumberNegativePattern(value, options, tryFallback) {
+export function parseNumberNegativePattern(
+    value: string,
+    options: Options,
+    tryFallback = false,
+) {
     const pre = options.negativePre.replace(NO_BREAK_SPACE_REGEX, ' ');
     const post = options.negativePost.replace(NO_BREAK_SPACE_REGEX, ' ');
     value = value.replace(NO_BREAK_SPACE_REGEX, ' ');
@@ -30,7 +26,7 @@ export function parseNumberNegativePattern(value, options, tryFallback) {
     return ['', value];
 }
 
-function parseNumber(value, options) {
+function parseNumber(value: string | null | undefined, options: Options) {
     if (value == null) {
         return NaN;
     }
@@ -93,7 +89,5 @@ function parseNumber(value, options) {
     }
     return NaN;
 }
-
-// -- Export section --
 
 export default parseNumber;

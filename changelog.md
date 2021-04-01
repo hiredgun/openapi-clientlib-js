@@ -1,3 +1,7 @@
+### v9.0.0
+#### Breaking
+- Number formatting 
+
 ### v8.4.0
 - Add pause, resume support to freeze subscriptions
 
