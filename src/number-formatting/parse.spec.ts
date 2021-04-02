@@ -1,4 +1,4 @@
-﻿import NumberFormatting from './number-formatting';
+﻿import NumberFormatting from '.';
 
 function parse(number: string) {
     const numbers = new NumberFormatting();

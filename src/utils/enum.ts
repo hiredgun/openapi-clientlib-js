@@ -6,9 +6,9 @@ export type Enum = string | ObjectEnum;
 /**
  * Converts a comma separated strings or an array of strings to an object with each string being the property name.
  */
-function toObject<T extends string = string>(
-    values: T | Array<T> | ObjectEnum<T>,
-): ObjectEnum<T> {
+function toObject<T extends string = string, R extends string = T>(
+    values: T | Array<T> | ObjectEnum<R>,
+): ObjectEnum<R> {
     const obj = {} as ObjectEnum;
 
     if (Array.isArray(values)) {

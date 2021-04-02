@@ -5,7 +5,7 @@ import shortFormat from './short-format';
 
 const numberOfZerosRx = /0+$/;
 
-interface ConfigurableOptions {
+export interface ConfigurableOptions {
     groupSizes: number[];
     groupSeparator: string;
     decimalSeparator: string;

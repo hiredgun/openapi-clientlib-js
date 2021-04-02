@@ -1,5 +1,5 @@
 import { endsWith, startsWith } from '../utils/string';
-import type { FormattingOptions } from './number-formatting';
+import type { FormattingOptions } from '.';
 
 const NO_BREAK_SPACE_REGEX = /\u00A0/g;
 

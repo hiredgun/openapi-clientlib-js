@@ -1,6 +1,6 @@
 import { en_us, ar_eg } from '../test/locales';
-import NumberFormatting from './number-formatting';
-import type { FormattingOptions } from './number-formatting';
+import NumberFormatting from '.';
+import type { FormattingOptions } from '.';
 
 function formatNumberNoRounding(
     number: number,
