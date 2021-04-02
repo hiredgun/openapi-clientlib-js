@@ -1,13 +1,15 @@
 import { extend } from './object';
 
-type ObjectEnum = Record<string, boolean>;
-type Enum = string | ObjectEnum;
+type ObjectEnum<T extends string = string> = Record<T, boolean>;
+export type Enum = string | ObjectEnum;
 
 /**
- * Converts from a comma separated object or an array of strings to an object with each string being the property name.
+ * Converts a comma separated strings or an array of strings to an object with each string being the property name.
  */
-function toObject(values: string | string[] | ObjectEnum) {
-    const obj: ObjectEnum = {};
+function toObject<T extends string = string>(
+    values: T | Array<T> | ObjectEnum<T>,
+): ObjectEnum<T> {
+    const obj = {} as ObjectEnum;
 
     if (Array.isArray(values)) {
         values.forEach((value) => {
@@ -18,26 +20,26 @@ function toObject(values: string | string[] | ObjectEnum) {
         return obj;
     }
 
-    if (typeof values !== 'string') {
-        return values;
+    if (typeof values === 'string') {
+        const valueList = values.split(',');
+        valueList.forEach((value) => {
+            const trimmedValue = value.trim();
+            if (trimmedValue) {
+                obj[trimmedValue] = true;
+            }
+        });
+
+        return obj;
     }
 
-    const valueList = values.split(',');
-    valueList.forEach((value) => {
-        const trimmedValue = value.trim();
-        if (trimmedValue) {
-            obj[trimmedValue] = true;
-        }
-    });
-
-    return obj;
+    return values;
 }
 
 /**
  * Makes an enum definition.
  */
-function makeDefinition(values: string[]) {
-    const enumDefinition: Record<string, string> = {};
+function makeDefinition<T extends string | number>(values: T[]): Record<T, T> {
+    const enumDefinition = {} as Record<T, T>;
 
     values.forEach((value) => {
         enumDefinition[value] = value;
@@ -95,7 +97,5 @@ function toString(enumA: ObjectEnum) {
     }
     return items.join(', ');
 }
-
-// -- Export section --
 
 export { toObject, makeDefinition, exclusion, union, toString };
