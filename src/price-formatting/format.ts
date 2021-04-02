@@ -1,18 +1,14 @@
-/**
- * @module saxo/price-formatting/format
- * @ignore
- */
-
 import * as enumUtils from '../utils/enum';
+import type { Enum } from '../utils/enum';
 import formatNumber from '../number-formatting/format';
+import type NumberFormatting from '../number-formatting';
 import { endsWith, multiply, padLeft } from '../utils/string';
 import { getModernFractionsSeparator } from './modern-fractions-character';
+import type { PriceFormatOption } from './format-options';
 
-// -- Local variables section --
+type FormatFlags = Partial<Record<PriceFormatOption, boolean>>;
 
 const NO_BREAK_SPACE = String.fromCharCode(0xa0);
-
-// -- Local methods section --
 
 function getFirstAndPipsParts(price, parts, numberFormatting) {
     const minSize =
@@ -305,6 +301,12 @@ function formatPricePartsDecimals(
     }
 }
 
+function isNumeric(
+    number: number | string | null | undefined,
+): number is number | string {
+    return !isNaN(number as any) && number !== null && number !== '';
+}
+
 /**
  * Formats a number to an object of price parts
  * @param numberFormatting
@@ -315,15 +317,15 @@ function formatPricePartsDecimals(
  * @returns {PriceParts}
  */
 function formatPriceParts(
-    numberFormatting,
-    value,
-    decimals,
-    formatFlags,
-    numeratorDecimals,
+    numberFormatting: NumberFormatting,
+    value: number,
+    decimals: number,
+    formatFlags: FormatFlags,
+    numeratorDecimals?: number,
 ) {
     const parts = { Pre: '', Post: '', First: '', Pips: '', DeciPips: '' };
 
-    if (isNaN(value) || value === null || value === '') {
+    if (!isNumeric(value)) {
         return parts;
     }
 
@@ -372,22 +374,21 @@ function formatPriceParts(
  * @param {NumberFormatting} numberFormatting
  * @param {number} value - The price value to format.
  * @param {number} decimals
- * @param {string|Object.<string, boolean>} [formatFlags="Normal"] - Indicates if the price also include
+ * @param {string|Array.<string>} [formatFlags="Normal"] - Indicates if the price also include
  *          half-pips (decimal pips), and which format should be used.
  * @param {number} [numeratorDecimals=0] - In the case of Fractions or ModernFractions, this is the number of decimals on the fraction numerator
  * @returns {PriceParts} An object containing the formatted price.
  */
 function formatPrice(
-    numberFormatting,
-    value,
-    decimals,
-    formatFlags,
-    numeratorDecimals,
+    numberFormatting: NumberFormatting,
+    value: number,
+    decimals: number,
+    formatOptions?: PriceFormatOption | PriceFormatOption[],
+    numeratorDecimals?: number,
 ) {
-    if (formatFlags) {
-        formatFlags = enumUtils.toObject(formatFlags);
-    } else {
-        formatFlags = { Normal: true };
+    let formatFlags: FormatFlags = { Normal: true };
+    if (formatOptions) {
+        formatFlags = enumUtils.toObject(formatOptions);
     }
 
     if (typeof decimals !== 'number') {
@@ -411,7 +412,5 @@ function formatPrice(
 
     return parts;
 }
-
-// -- Export section --
 
 export default formatPrice;
