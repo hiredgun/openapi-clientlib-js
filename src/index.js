@@ -4,7 +4,7 @@ import * as utilsObject from './utils/object';
 import * as utilsString from './utils/string';
 import utilsFetch from './utils/fetch';
 
-import PriceFormatting from './price-formatting/price-formatting';
+import PriceFormatting from './price-formatting';
 import priceFormatOptions from './price-formatting/format-options';
 import NumberFormatting from './number-formatting';
 

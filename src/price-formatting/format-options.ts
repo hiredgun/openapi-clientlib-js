@@ -55,7 +55,7 @@ const PriceFormatOptions = {
     /** @member {string} saxo.priceFormatOptions.NoRounding - Indicates that no rounding should be done - that
      *  decimals should be treated as a max decimals. */
     NoRounding: 'NoRounding',
-};
+} as const;
 
 // The following are currently unused, but as open api expands, they may be required in the future.
 // They are aggregate definitions

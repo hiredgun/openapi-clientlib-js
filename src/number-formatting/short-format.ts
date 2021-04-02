@@ -1,6 +1,6 @@
 import { extend } from '../utils/object';
 import formatNumber from './format';
-import type { FormattingOptions } from './number-formatting';
+import type { FormattingOptions } from '.';
 
 /**
  * Converts from a number to a string like "1k" or "100m".

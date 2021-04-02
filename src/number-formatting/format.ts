@@ -1,4 +1,4 @@
-import type { FormattingOptions } from './number-formatting';
+import type { FormattingOptions } from '.';
 
 interface Options extends FormattingOptions {
     isHideZeroTail?: boolean;

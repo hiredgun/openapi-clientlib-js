@@ -3,7 +3,7 @@ import * as enumUtils from './enum';
 describe('utils enum', () => {
     describe('toObject', () => {
         it('understands String Open Api Format', () => {
-            const enu = enumUtils.toObject('One, Two, Three');
+            const enu = enumUtils.toObject(['One', 'Two', 'Three']);
 
             expect(enu.One).toEqual(true);
             expect(enu.Two).toEqual(true);
