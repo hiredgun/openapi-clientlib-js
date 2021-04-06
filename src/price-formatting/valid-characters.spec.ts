@@ -3,14 +3,14 @@ import PriceFormatting from '.';
 import priceFormatOptions from './format-options';
 import type { PriceFormatOption } from './format-options';
 import type { FormatFlags } from './format';
-import type { ConfigurableOptions } from '../number-formatting';
+import type { NumberOptions } from '../number-formatting';
 import type { Scenarios } from './types';
 
 function testHasCharacters(
     price: number,
     decimals: number,
     formatFlags: PriceFormatOption | PriceFormatOption[] | FormatFlags | null,
-    options: Partial<ConfigurableOptions>,
+    options: Partial<NumberOptions>,
     includeScenarios: Partial<Scenarios>,
 ) {
     const prices = new PriceFormatting(options);
@@ -29,7 +29,7 @@ function testRegex(
     price: number,
     decimals: number,
     formatFlags: PriceFormatOption | PriceFormatOption[] | FormatFlags | null,
-    options: Partial<ConfigurableOptions>,
+    options: Partial<NumberOptions>,
     includeScenarios: Partial<Scenarios>,
 ) {
     const prices = new PriceFormatting(options);

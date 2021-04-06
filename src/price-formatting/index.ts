@@ -1,5 +1,5 @@
 ﻿import NumberFormatting from '../number-formatting';
-import type { ConfigurableOptions } from '../number-formatting';
+import type { NumberOptions } from '../number-formatting';
 import { format as formatTemplate } from '../utils/string';
 import formatPrice from './format';
 import type { FormatFlags } from './format';
@@ -21,7 +21,7 @@ import type { Scenarios } from './types';
 class PriceFormatting {
     numberFormatting: NumberFormatting;
 
-    constructor(numberOptions?: Partial<ConfigurableOptions>) {
+    constructor(numberOptions?: Partial<NumberOptions>) {
         this.numberFormatting = new NumberFormatting(numberOptions);
     }
 

@@ -1,6 +1,6 @@
-import type { FormattingOptions } from '.';
+import type { NumberFormattingOptions } from '.';
 
-interface Options extends FormattingOptions {
+interface Options extends NumberFormattingOptions {
     isHideZeroTail?: boolean;
 }
 
