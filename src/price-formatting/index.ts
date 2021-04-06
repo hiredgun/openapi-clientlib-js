@@ -13,11 +13,9 @@ import type { PriceFormatOption } from './format-options';
 import type { Scenarios } from './types';
 /**
  * Constructs a new PriceFormatting instance that can be used to format and parse prices.
- * @class
- * @alias saxo.PriceFormatting
  * @param {Object} [numberOptions] - See {@link saxo.Numbers} for possible number options.
  * @example
- * var priceFormatting = new saxo.PriceFormatting({decimalSeparator: ','});
+ * var priceFormatting = new PriceFormatting({decimalSeparator: ','});
  * var formattedPrice = priceFormatting.format(1.23, 2);
  */
 class PriceFormatting {
@@ -32,7 +30,7 @@ class PriceFormatting {
      * @param {number} value - Number to format.
      * @param {number} decimals  - The number of decimal places to display.
      * @param {string|Array.<string>} [formatOptions="Normal"] - The format flags to use when formatting
-     *          - see {@link saxo.priceFormatOptions}. If the flag is not recognised, it will be treated as if it is "Normal"
+     *          If the flag is not recognized, it will be treated as if it is "Normal"
      * @param {number} [numeratorDecimals=0] - The number of decimal places of the numerator in the case of fractions and modern fractions.
      * @returns {string} The formatting string.
      */
@@ -59,22 +57,12 @@ class PriceFormatting {
     }
 
     /**
-     * An object representing a price that has been split up into parts.
-     * @typedef {Object} saxo.PriceParts
-     * @property {string} Pre - Anything appearing before the price, like the negative symbol "-".
-     * @property {string} Post - Anything appearing after the price, like in some cultures the negative symbol "-".
-     * @property {string} First - The first part of the price, e.g. "1.98".
-     * @property {string} Pips - The pips for the price, if present e.g. "76".
-     * @property {string} DeciPips - The deci-pips for the price if present e.g. "7".
-     */
-
-    /**
      * Formats a number as price parts.
      * @param {number} value - Number to format.
      * @param {number} decimals - The number of decimal places to display.
      * @param {string|Array.<string>} formatOptions - The format flags to use when formatting - see {@link saxo.priceFormatOptions}.
      * @param {number} [numeratorDecimals=0] - The number of decimal places of the numerator in the case of fractions and modern fractions.
-     * @returns {saxo.PriceParts} formatted price parts.
+     * @returns formatted price parts.
      */
     formatPriceParts(
         value: number,
@@ -95,7 +83,7 @@ class PriceFormatting {
      * Formats a number using a template.
      * @param {number} value - Number to format.
      * @param {number} decimals - The number of decimal places to display.
-     * @param {string|Array.<string>} formatOptions - The format flags to use when formatting - see {@link saxo.priceFormatOptions}.
+     * @param {string|Array.<string>} formatOptions - The format flags to use when formatting.
      * @param {number} [numeratorDecimals=0] - The number of decimal places of the numerator in the case of fractions and modern fractions.
      * @param {string} [templateStr="{Pre}{First}{Pips}<small>{DeciPips}</small>{Post}"] - The template string to use.
      * @returns {string} A formatted string.
