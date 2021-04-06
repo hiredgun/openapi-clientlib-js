@@ -400,7 +400,7 @@ function formatPriceParts(
  * @param {NumberFormatting} numberFormatting
  * @param {number} value - The price value to format.
  * @param {number} decimals
- * @param {string|Array.<string>} [formatFlags="Normal"] - Indicates if the price also include
+ * @param {string|Object.<string, boolean>} [formatFlags="Normal"] - Indicates if the price also include
  *          half-pips (decimal pips), and which format should be used.
  * @param {number} [numeratorDecimals=0] - In the case of Fractions or ModernFractions, this is the number of decimals on the fraction numerator
  * @returns {PriceParts} An object containing the formatted price.

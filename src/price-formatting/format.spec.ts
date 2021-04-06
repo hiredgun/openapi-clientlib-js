@@ -2186,10 +2186,10 @@ describe('price-formatting format', () => {
             const parts = priceFormatting.formatPriceParts(
                 1.123456789012345,
                 2,
-                [
-                    priceFormatOptions.AllowDecimalPips,
-                    priceFormatOptions.UseExtendedDecimals,
-                ],
+                {
+                    [priceFormatOptions.AllowDecimalPips]: true,
+                    [priceFormatOptions.UseExtendedDecimals]: true,
+                },
             );
 
             expect(parts).toEqual({
@@ -2218,10 +2218,10 @@ describe('price-formatting format', () => {
         });
 
         it('only includes non-zero extra decimals when deci-pips are supported', () => {
-            const parts = priceFormatting.formatPriceParts(1.12345, 2, [
-                priceFormatOptions.AllowDecimalPips,
-                priceFormatOptions.UseExtendedDecimals,
-            ]);
+            const parts = priceFormatting.formatPriceParts(1.12345, 2, {
+                [priceFormatOptions.AllowDecimalPips]: true,
+                [priceFormatOptions.UseExtendedDecimals]: true,
+            });
 
             expect(parts).toEqual({
                 Pre: '',
