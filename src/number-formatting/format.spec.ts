@@ -1,6 +1,6 @@
 import { en_us, ar_eg } from '../test/locales';
 import NumberFormatting from '.';
-import type { FormattingOptions } from '.';
+import type { NumberFormattingOptions } from '.';
 
 function formatNumberNoRounding(
     number: number,
@@ -11,7 +11,10 @@ function formatNumberNoRounding(
     return numbers.formatNoRounding(number, minDecimals, maxDecimals);
 }
 
-function shortFormat(number: number, options?: Partial<FormattingOptions>) {
+function shortFormat(
+    number: number,
+    options?: Partial<NumberFormattingOptions>,
+) {
     const numbers = new NumberFormatting(options);
     return numbers.shortFormat(number);
 }
@@ -19,7 +22,7 @@ function shortFormat(number: number, options?: Partial<FormattingOptions>) {
 function formatNumber(
     number: number,
     decimals?: number,
-    options?: Partial<FormattingOptions>,
+    options?: Partial<NumberFormattingOptions>,
 ) {
     const numbers = new NumberFormatting(options);
     return numbers.format(number, decimals);

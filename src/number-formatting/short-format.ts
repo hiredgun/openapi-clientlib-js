@@ -1,6 +1,6 @@
 import { extend } from '../utils/object';
 import formatNumber from './format';
-import type { FormattingOptions } from '.';
+import type { NumberFormattingOptions } from '.';
 
 /**
  * Converts from a number to a string like "1k" or "100m".
@@ -9,7 +9,7 @@ import type { FormattingOptions } from '.';
  * @param options
  * @returns {string} Returns 0 when dates are equal. -1 when date1 less than date2. 1 when date1 greater than date2.
  */
-function shortFormat(number: number, options: FormattingOptions) {
+function shortFormat(number: number, options: NumberFormattingOptions) {
     let prefix = '';
     let suffix = '';
 

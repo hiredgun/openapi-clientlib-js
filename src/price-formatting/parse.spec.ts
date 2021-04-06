@@ -2,7 +2,7 @@ import { de_ch, da_dk, fr_fr, ar_eg, hi_in } from '../test/locales';
 import PriceFormatting from '.';
 import priceFormatOptions from './format-options';
 import type { PriceFormatOption } from './format-options';
-import type { ConfigurableOptions } from '../number-formatting';
+import type { NumberOptions } from '../number-formatting';
 import type { FormatFlags } from './format';
 
 function testConversion(
@@ -14,7 +14,7 @@ function testConversion(
         | FormatFlags
         | null,
     numeratorDecimals?: number,
-    options?: Partial<ConfigurableOptions>,
+    options?: Partial<NumberOptions>,
 ) {
     if (options != null) {
         expect(typeof options).toEqual('object');
@@ -39,7 +39,7 @@ function testConversionChanged(
     newValue: number,
     decimals: number,
     priceFormatOption?: PriceFormatOption | PriceFormatOption[] | FormatFlags,
-    options?: Partial<ConfigurableOptions>,
+    options?: Partial<NumberOptions>,
 ) {
     const prices = new PriceFormatting(options);
     expect(
