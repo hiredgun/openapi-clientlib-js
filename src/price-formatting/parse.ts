@@ -105,7 +105,7 @@ function findFractionalPart(value: string) {
     return index;
 }
 
-function parseDecimalprice(
+function parseDecimalPrice(
     numberFormatting: NumberFormatting,
     s: string,
     formatFlags: FormatFlags,
@@ -301,7 +301,7 @@ function parsePrice(
                 decimals,
             );
         }
-        return parseDecimalprice(numberFormatting, s, formatFlags);
+        return parseDecimalPrice(numberFormatting, s, formatFlags);
     } catch (e) {
         return NaN;
     }

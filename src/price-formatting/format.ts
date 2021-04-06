@@ -393,8 +393,6 @@ function formatPriceParts(
     return parts;
 }
 
-// -- Exported methods section --
-
 /**
  * Formats a price value with the specified options.
  * @param {NumberFormatting} numberFormatting
