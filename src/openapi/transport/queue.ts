@@ -23,20 +23,22 @@ import type * as types from './types';
  *      If not given then calls will continue even when the authentication is not expired and no 401 calls will be handled.
  */
 
-export type TransporterArgs = [string, string, string[], Options]
+export type TransporterArgs = [string?, string?, Record<string, string | number>?, Options?]
 
 type Options = {
-    headers?: Record<string, string>;
-    body?: string;
-    queryParams?: Record<string, string>
+    headers?: Record<string, string | boolean>;
+    body?: string | Record<string, string | boolean | number>;
+    queryParams?: Record<string, string | number>
 }
+
+
 export type QueueItem = {
     method: types.Methods,
     args: TransporterArgs,
     servicePath: string,
     urlTemplate: string,
-    urlArgs: string[],
-    options: Options,
+    urlArgs?: Record<string, string | number>,
+    options?: Options,
     resolve: (...value: any[]) => void,
     reject: (reason?: any, ...rest: any[]) => void,
 }
@@ -84,7 +86,7 @@ class TransportQueue {
 
 
     private transportMethod = (method: types.Methods) => {
-        return (...args: [string, string, string[], Options]) => {
+        return (...args: [string?, string?, Record<string, string | number>?, Options?]) => {
             if (!this.isQueueing) {
                 // checking expiry every time so that if device goes to sleep and is woken then
                 // we intercept a call about to be made and then do not have to cope with the 401 responses
@@ -103,8 +105,8 @@ class TransportQueue {
                 const queueItem: QueueItem = {
                     method,
                     args: transportCallArguments,
-                    servicePath: transportCallArguments[0],
-                    urlTemplate: transportCallArguments[1],
+                    servicePath: transportCallArguments[0] || '',
+                    urlTemplate: transportCallArguments[1] || '',
                     urlArgs: transportCallArguments[2],
                     options: transportCallArguments[3],
                     resolve,
@@ -145,14 +147,14 @@ class TransportQueue {
         this.waitForPromises.push(promise);
         this.isQueueing = true;
         promise.then(() => this.onWaitForPromiseResolved(promise));
-    };
+    }
 
     emptyQueue() {
         for (let i = 0; i < this.queue.length; i++) {
             this.runQueueItem(this.queue[i]);
         }
         this.queue.length = 0;
-    };
+    }
 
     runQueueItem(item: QueueItem) {
         this.transport[item.method](...item.args).then(
@@ -174,16 +176,16 @@ class TransportQueue {
                 item.reject(result, ...args);
             },
         );
-    };
+    }
 
     addToQueue(item: QueueItem) {
         this.queue.push(item);
-    };
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     shouldQueue(_item: QueueItem) {
         return true;
-    };
+    }
 
     //  * Disposes the transport queue and removes any pending items.
     dispose() {
@@ -197,7 +199,7 @@ class TransportQueue {
             );
         }
         this.transport.dispose();
-    };
+    }
 
 }
 

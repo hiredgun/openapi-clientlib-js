@@ -70,7 +70,7 @@ class TransportBatch extends TransportQueue {
     isQueueing = true
     nextTickTimer: ReturnType<typeof setTimeout> | boolean = false
 
-    constructor(transport: any, baseUrl: string, options: types.Options) {
+    constructor(transport: any, baseUrl: string | null, options?: types.Options | null) {
         super(transport);
 
         if (!baseUrl) {
