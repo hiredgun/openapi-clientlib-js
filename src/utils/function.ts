@@ -17,7 +17,7 @@ if (typeof setImmediate === 'function') {
     };
 } else if (typeof MessageChannel !== 'undefined') {
     // modern browsers
-    // http://www.nonblocking.io/2011/06/wind ownexttick.html
+    // http://www.nonblocking.io/2011/06/windownexttick.html
     const channel = new MessageChannel();
     // linked list of tasks (single, with head node)
     let head: Record<string, any> = {};
