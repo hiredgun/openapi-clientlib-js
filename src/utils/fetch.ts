@@ -1,6 +1,6 @@
 ﻿import log from '../log';
 
-type HttpMethod =
+export type HttpMethod =
     | 'GET'
     | 'HEAD'
     | 'POST'
@@ -16,7 +16,7 @@ interface Options {
     headers?: Record<string, string>;
     cache?: boolean;
     credentials?: RequestCredentials;
-    useXHttpMethodOverride: boolean;
+    useXHttpMethodOverride?: boolean;
 }
 
 const LOG_AREA = 'Fetch';
