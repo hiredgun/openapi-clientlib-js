@@ -47,8 +47,6 @@ class TransportAuth {
         Array<{ authExpiry: number; added: number }>
     > = {};
 
-    // its a timeout id
-    errorCleanupTimeOutId: any;
     // needs to map with transport core interface
     transport: any;
     authProvider: AuthProvider;
@@ -75,9 +73,10 @@ class TransportAuth {
     private onTransportError(
         oldTokenExpiry: number,
         timeRequested: number,
+        // fix-me remove any
         result: any,
     ) {
-        if (result && result.status === 401) {
+        if (result?.status === 401) {
             this.addAuthError(result.url, oldTokenExpiry, timeRequested);
             this.cleanupAuthErrors();
             const areUrlAuthErrorsProblematic = this.areUrlAuthErrorsProblematic(
@@ -129,7 +128,7 @@ class TransportAuth {
                 newOptions,
             ).catch(
                 // binding of this is required to access the old context for getting old expiry token
-                // see ath.spec.js refreshes the token when a transport call returns a 401 
+                // see ath.spec.js refreshes the token when a transport call returns a 401
                 this.onTransportError.bind(
                     this,
                     this.authProvider.getExpiry(),
@@ -137,7 +136,7 @@ class TransportAuth {
                 ),
             );
         };
-    }
+    };
 
     get = this.makeTransportMethod('get');
     put = this.makeTransportMethod('put');
@@ -212,10 +211,7 @@ class TransportAuth {
 
     //  Stops the transport from refreshing the token.
     dispose() {
-        clearTimeout(this.errorCleanupTimeOutId);
-        this.errorCleanupTimeOutId = null;
         this.authorizationErrors = {};
-
         this.transport.dispose();
     }
 }

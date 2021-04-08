@@ -90,8 +90,8 @@ type Options = {
  */
 
 class AuthProvider {
-    #expiry = 0;
-    token: string | null = null;
+    private expiry = 0;
+    private token: string | null = null;
     tokenRefreshUrl?: string;
     tokenRefreshHeaders?: Record<string, string> = {};
     tokenRefreshCredentials = DEFAULT_TOKEN_REFRESH_CREDENTIALS;
@@ -104,7 +104,7 @@ class AuthProvider {
     state = 1;
     retries = 0;
     tokenRefreshTimerFireTime = 0;
-    tokenRefreshTimer: any = 0;
+    tokenRefreshTimer: ReturnType<typeof setTimeout> | null = null;
     lastTokenFetchTime = 0;
     // Type of event that occurs when the token is refreshing.
     EVENT_TOKEN_REFRESH = 'tokenRefresh';
@@ -113,22 +113,25 @@ class AuthProvider {
     // Type of event that occurs when the token refresh fails.
     EVENT_TOKEN_REFRESH_FAILED = 'tokenRefreshFailed';
 
-    // need to remove once we have microEmitter implement as class
+    // fix-me need to remove once we have microEmitter implement as class
     trigger: any;
 
-    constructor(options?: Options) {
+    constructor(options: Options) {
         emitter.mixinTo(this);
 
         if (!options?.token && !options?.tokenRefreshUrl) {
             throw new Error('No token supplied and no way to get it');
         }
-        this.#expiry = options?.expiry || 0;
+
+        if (options?.expiry) {
+            this.expiry = options.expiry;
+        }
 
         this.token = addBearer(options.token || null);
 
         // convert to absolute if the value is too small to be absolute
-        if (this.#expiry < Date.UTC(2000, 0)) {
-            this.#expiry = toAbsoluteTokenExpiry(this.#expiry);
+        if (this.expiry < Date.UTC(2000, 0)) {
+            this.expiry = toAbsoluteTokenExpiry(this.expiry);
         }
 
         this.tokenRefreshUrl = options.tokenRefreshUrl;
@@ -182,7 +185,7 @@ class AuthProvider {
     private fetchToken(url: string) {
         this.state = STATE_REFRESHING;
         this.lastTokenFetchTime = Date.now();
-        const headers: any = this.tokenRefreshHeaders || {};
+        const headers = this.tokenRefreshHeaders || {};
         headers['Content-Type'] = headers['Content-Type'] || 'JSON';
 
         fetch(this.tokenRefreshMethod, url, {
@@ -192,6 +195,7 @@ class AuthProvider {
         }).then(this.onApiTokenReceived, this.onApiTokenReceiveFail);
     }
 
+    // Fix me remove any
     private onApiTokenReceived = (result: any) => {
         this.state = STATE_WAITING;
         this.retries = 0;
@@ -215,6 +219,7 @@ class AuthProvider {
         this.trigger(this.EVENT_TOKEN_RECEIVED, token, expiry);
     };
 
+    // Fix me remove any
     private onApiTokenReceiveFail = (result: any) => {
         const currentExpiry = this.getExpiry();
         const isAuthenticationError =
@@ -292,12 +297,12 @@ class AuthProvider {
     }
 
     getExpiry() {
-        return this.#expiry;
+        return this.expiry;
     }
 
     set(newToken: string, newExpiry: number) {
         this.token = addBearer(newToken);
-        this.#expiry = newExpiry;
+        this.expiry = newExpiry;
     }
 
     isFetchingNewToken() {
