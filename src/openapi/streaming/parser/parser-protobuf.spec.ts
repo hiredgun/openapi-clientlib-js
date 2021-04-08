@@ -1,4 +1,4 @@
-import protobuf from 'protobufjs/dist/protobuf';
+import protobuf from 'protobufjs';
 import * as mockProtoPrice from '../../../test/mocks/proto-price';
 import * as mockProtoMeta from '../../../test/mocks/proto-meta';
 import ParserProtobuf from './parser-protobuf';
@@ -28,7 +28,7 @@ describe('Parser Protobuf', () => {
                     message: null,
                 }),
             );
-            expect(data.__meta_nulls).toBeFalsy();
+            expect(data?.__meta_nulls).toBeFalsy();
         });
 
         it('should return json object with collection envelope', () => {

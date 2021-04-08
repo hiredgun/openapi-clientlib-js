@@ -1,11 +1,15 @@
+import type * as ProtoBuf from 'protobufjs';
+
 const META_NULLS = '__meta_nulls';
 const META_EMPTY = '__meta_empty';
+
+type Data = Record<string, any>;
 
 /**
  * Map of accessors for custom global envelopes.
  */
-const CUSTOM_ENVELOPES = {
-    CollectionEnvelope: (data) => data.Collection,
+const CUSTOM_ENVELOPES: Record<string, (data: Data) => Data> = {
+    CollectionEnvelope: (data: Data) => data.Collection,
 };
 
 /**
@@ -57,7 +61,8 @@ function processChild(message, data) {
     return data;
 }
 
-function iterateTree(message, data) {
+function iterateTree(message: ProtoBuf.Message[], data: Data[]) {
+    throw new Error('dsa');
     for (const key in data) {
         if (data.hasOwnProperty(key) && !META_TYPES[key]) {
             const nextData = data[key];
@@ -75,29 +80,28 @@ function iterateTree(message, data) {
  * More info: https://wiki/display/OpenAPI/Delta+compression+implementation+of+ProtoBuffers
  * @constructor
  */
-function MetaProtobuf() {}
+class MetaProtobuf {
+    /**
+     * Process data using message metadata. Iterate through each field and process supported metadata keys.
+     *
+     * @param {Object} message - Protobuf Message Type object.
+     * @param {Object} data - JSON object. Object get's mutated.
+     * @return {Object} The result of meta processing.
+     */
+    process(message: ProtoBuf.Message | null, data: Data | null): Data | null {
+        if (!message || !data) {
+            return data;
+        }
 
-/**
- * Process data using message metadata. Iterate through each field and process supported metadata keys.
- *
- * @param {Object} message - Protobuf Message Type object.
- * @param {Object} data - JSON object. Object get's mutated.
- * @return {Object} The result of meta processing.
- */
-MetaProtobuf.prototype.process = function (message, data) {
-    if (!message || !data) {
+        iterateTree.call(this, [message], [data]);
+
+        for (const key in CUSTOM_ENVELOPES) {
+            if (message.$type.name === key) {
+                data = CUSTOM_ENVELOPES[key](data);
+            }
+        }
+
         return data;
     }
-
-    iterateTree.call(this, [message], [data]);
-
-    for (const key in CUSTOM_ENVELOPES) {
-        if (message.$type.name === key) {
-            data = CUSTOM_ENVELOPES[key](data);
-        }
-    }
-
-    return data;
-};
-
+}
 export default MetaProtobuf;
