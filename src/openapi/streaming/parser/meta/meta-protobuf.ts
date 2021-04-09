@@ -3,7 +3,13 @@ import type * as ProtoBuf from 'protobufjs';
 const META_NULLS = '__meta_nulls';
 const META_EMPTY = '__meta_empty';
 
+type Flags = Record<string, true>;
 type Data = Record<string, any>;
+
+type Message = {
+    [META_NULLS]?: number[];
+    [META_EMPTY]?: number[];
+} & ProtoBuf.Message;
 
 /**
  * Map of accessors for custom global envelopes.
@@ -29,52 +35,6 @@ function emptyAccessor() {
     return [];
 }
 
-function processData(message, data, ids, accessor) {
-    for (let i = 0; i < ids.length; i++) {
-        const id = ids[i];
-        const field = message.$type.fieldsById[id];
-        if (!field) {
-            continue;
-        }
-        data[field.name] = accessor();
-    }
-}
-
-function processChild(message, data) {
-    if (!message) {
-        return data;
-    }
-
-    if (message[META_NULLS] && message[META_NULLS].length) {
-        processData(message, data, message[META_NULLS], nullAccessor);
-
-        // Remove deleting as soon as we move metadata to extensions.
-        delete data[META_NULLS];
-    }
-    if (message[META_EMPTY] && message[META_EMPTY].length) {
-        processData(message, data, message[META_EMPTY], emptyAccessor);
-
-        // Remove deleting as soon as we move metadata to extensions.
-        delete data[META_EMPTY];
-    }
-
-    return data;
-}
-
-function iterateTree(message: ProtoBuf.Message[], data: Data[]) {
-    throw new Error('dsa');
-    for (const key in data) {
-        if (data.hasOwnProperty(key) && !META_TYPES[key]) {
-            const nextData = data[key];
-            if (typeof nextData === 'object') {
-                processChild.call(this, message[key], data[key]);
-                iterateTree.call(this, message[key], nextData);
-            }
-        }
-    }
-    return data;
-}
-
 /**
  * Responsible for processing of all custom meta fields of decoded message type.
  * More info: https://wiki/display/OpenAPI/Delta+compression+implementation+of+ProtoBuffers
@@ -88,12 +48,12 @@ class MetaProtobuf {
      * @param {Object} data - JSON object. Object get's mutated.
      * @return {Object} The result of meta processing.
      */
-    process(message: ProtoBuf.Message | null, data: Data | null): Data | null {
+    process(message: Message | null, data: Data | null): Data | null {
         if (!message || !data) {
             return data;
         }
 
-        iterateTree.call(this, [message], [data]);
+        this.iterateTree([message], [data]);
 
         for (const key in CUSTOM_ENVELOPES) {
             if (message.$type.name === key) {
@@ -102,6 +62,62 @@ class MetaProtobuf {
         }
 
         return data;
+    }
+
+    private iterateTree(
+        message: Record<string, any>,
+        data: Record<string, any>,
+    ) {
+        for (const key in data) {
+            if (data.hasOwnProperty(key) && !(META_TYPES as Flags)[key]) {
+                const nextData = data[key];
+                if (typeof nextData === 'object') {
+                    this.processChild(message[key], data[key]);
+                    this.iterateTree(message[key], nextData);
+                }
+            }
+        }
+        return data;
+    }
+
+    private processChild(message: Message, data: Data) {
+        if (!message) {
+            return data;
+        }
+
+        const metaNulls = message[META_NULLS];
+        const metaEmpty = message[META_EMPTY];
+
+        if (metaNulls?.length) {
+            this.processData(message, data, metaNulls, nullAccessor);
+
+            // Remove deleting as soon as we move metadata to extensions.
+            delete data[META_NULLS];
+        }
+        if (metaEmpty?.length) {
+            this.processData(message, data, metaEmpty, emptyAccessor);
+
+            // Remove deleting as soon as we move metadata to extensions.
+            delete data[META_EMPTY];
+        }
+
+        return data;
+    }
+
+    private processData(
+        message: Message,
+        data: Data,
+        ids: number[],
+        accessor: () => null | any[],
+    ) {
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const field = message.$type.fieldsById[id];
+            if (!field) {
+                continue;
+            }
+            data[field.name] = accessor();
+        }
     }
 }
 export default MetaProtobuf;

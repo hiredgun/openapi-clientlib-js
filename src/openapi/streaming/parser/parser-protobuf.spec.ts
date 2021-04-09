@@ -204,6 +204,7 @@ describe('Parser Protobuf', () => {
             );
 
             expect(done).toBe(false);
+            // @ts-expect-error testing invalid usage
             expect(parser.getSchemaType('InvalidSchema')).toBeFalsy();
         });
     });
