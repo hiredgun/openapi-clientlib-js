@@ -699,11 +699,11 @@ describe('openapi TransportCore', () => {
             expectTheLanguageToBeSetTo('dk, *;q=0.5');
             fetch.mockClear();
 
-            transport.put('service_path', 'url', null,);
+            transport.put('service_path', 'url', null);
             expectTheLanguageToBeSetTo('dk, *;q=0.5');
             fetch.mockClear();
 
-            transport.post('service_path', 'url', null, { headers: null });
+            transport.post('service_path', 'url', null, { headers: {} });
             expectTheLanguageToBeSetTo('dk, *;q=0.5');
             fetch.mockClear();
 
@@ -798,7 +798,7 @@ describe('openapi TransportCore', () => {
             ]);
             fetch.mockClear();
 
-            transport.post('service_path', 'url', null, { headers: null });
+            transport.post('service_path', 'url', null, { headers: {} });
             expect(fetch.mock.calls.length).toEqual(1);
             expect(fetch.mock.calls[0]).toEqual([
                 expect.anything(),

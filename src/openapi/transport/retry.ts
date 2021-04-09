@@ -3,16 +3,16 @@
  * @ignore
  */
 
-import { APIResponse, Methods } from "./types";
-import type TransportCore from './core'
+import type { APIResponse, Methods } from './types';
+import type TransportCore from './core';
 
 interface TransportCall {
     method: Methods;
-    args: [string],
-    resolve: (value?: any) => void,
-    reject: (value?: any) => void,
-    retryCount: number,
-    retryTimer: ReturnType<typeof setTimeout> | null,
+    args: [string];
+    resolve: (value?: any) => void;
+    reject: (value?: any) => void;
+    retryCount: number;
+    retryTimer: ReturnType<typeof setTimeout> | null;
 }
 
 // -- Local variables section --
@@ -43,20 +43,22 @@ interface TransportCall {
  * });
  */
 
-
 class TransportRetry {
     retryTimeout = 0;
     methods: Record<string, any>;
     transport: any;
-    failedCalls: TransportCall[] = []
-    individualFailedCalls: TransportCall[] = []
+    failedCalls: TransportCall[] = [];
+    individualFailedCalls: TransportCall[] = [];
     retryTimer: ReturnType<typeof setTimeout> | null = null;
     isDisposed = false;
 
-    constructor(transport: TransportCore, options?: {
-        retryTimeout: number
-        methods?: Record<string, any>
-    }) {
+    constructor(
+        transport: TransportCore,
+        options?: {
+            retryTimeout: number;
+            methods?: Record<string, any>;
+        },
+    ) {
         if (!transport) {
             throw new Error(
                 'Missing required parameter: transport in TransportRetry',
@@ -98,17 +100,18 @@ class TransportRetry {
         };
     }
 
-    get = this.transportMethod('get')
-    post = this.transportMethod('post')
-    put = this.transportMethod('put')
-    delete = this.transportMethod('delete')
-    patch = this.transportMethod('patch')
-    head = this.transportMethod('head')
-    options = this.transportMethod('options')
+    get = this.transportMethod('get');
+    post = this.transportMethod('post');
+    put = this.transportMethod('put');
+    delete = this.transportMethod('delete');
+    patch = this.transportMethod('patch');
+    head = this.transportMethod('head');
+    options = this.transportMethod('options');
 
     sendTransportCall = (transportCall: TransportCall) => {
-        this.transport[transportCall.method](transportCall.args)
-            .then(transportCall.resolve, (response: APIResponse) => {
+        this.transport[transportCall.method](transportCall.args).then(
+            transportCall.resolve,
+            (response: APIResponse) => {
                 const callOptions = this.methods[transportCall.method];
                 const isRetryForStatus =
                     response &&
@@ -135,8 +138,9 @@ class TransportRetry {
                 } else {
                     transportCall.reject(response);
                 }
-            });
-    }
+            },
+        );
+    };
 
     addFailedCall(transportCall: TransportCall) {
         const callOptions = this.methods[transportCall.method];
@@ -167,7 +171,6 @@ class TransportRetry {
             this.sendTransportCall(this.failedCalls.shift() as TransportCall);
         }
     }
-
 
     retryIndividualFailedCall(transportCall: TransportCall) {
         transportCall.retryTimer = null;
@@ -200,10 +203,8 @@ class TransportRetry {
         this.individualFailedCalls.length = 0;
         this.failedCalls.length = 0;
         this.transport.dispose();
-    };
-
+    }
 }
-
 
 // -- Export section --
 export default TransportRetry;

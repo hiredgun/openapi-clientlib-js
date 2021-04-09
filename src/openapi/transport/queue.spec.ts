@@ -11,7 +11,7 @@ import TransportQueue from './queue';
 describe('openapi TransportQueue', () => {
     let transport: any;
     let transportQueue: TransportQueue;
-    // this authProvider is a mockImplementation and have few methods different then 
+    // this authProvider is a mockImplementation and have few methods different then
     let authProvider: any;
 
     beforeEach(() => {

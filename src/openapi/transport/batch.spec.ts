@@ -394,7 +394,7 @@ describe('openapi TransportBatch', () => {
             'port',
             'ref/v1/instruments/details/{InstrumentId}/{Type}',
             { InstrumentId: 1518824, Type: 'CfdOnFutures' },
-            { headers: { MyHeader: true } },
+            { headers: { MyHeader: 'true' } },
         );
         transportBatch.get(
             'port',

@@ -27,12 +27,18 @@ const LOG_AREA = 'TransportPutPatchDiagnositicsQueue';
  */
 
 class TransportPutPatchDiagnositicsQueue {
-    isQueueing = true
-    transport: TransportAuth | TransportQueue | TransportBatch | TransportCore
-    transportQueue: TransportQueue
+    isQueueing = true;
+    transport: TransportAuth | TransportQueue | TransportBatch | TransportCore;
+    transportQueue: TransportQueue;
 
-
-    constructor(transport: TransportAuth | TransportQueue | TransportBatch | TransportCore, transportCore: TransportCore) {
+    constructor(
+        transport:
+            | TransportAuth
+            | TransportQueue
+            | TransportBatch
+            | TransportCore,
+        transportCore: TransportCore,
+    ) {
         if (!transport) {
             throw new Error(
                 'Missing required parameter: transport in TransportPutPatchDiagnositicsQueue',
@@ -65,7 +71,10 @@ class TransportPutPatchDiagnositicsQueue {
                     );
                 })
                 .then(() => {
-                    log.debug(LOG_AREA, 'Diagnostics checks finished, continuing');
+                    log.debug(
+                        LOG_AREA,
+                        'Diagnostics checks finished, continuing',
+                    );
                     this.isQueueing = false;
                 }),
         );
@@ -76,6 +85,7 @@ class TransportPutPatchDiagnositicsQueue {
             const transport = this.isQueueing
                 ? this.transportQueue
                 : this.transport;
+            // eslint-disable-next-line prefer-spread
             return transport[method].apply(transport, args);
         };
     }
@@ -85,26 +95,14 @@ class TransportPutPatchDiagnositicsQueue {
     }
 
     get = this.otherMethodTransport('get');
-    post = this.otherMethodTransport(
-        'post',
-    );
-    put = this.putPatchTransportMethod(
-        'put',
-    );
-    delete = this.otherMethodTransport(
-        'delete',
-    );
+    post = this.otherMethodTransport('post');
+    put = this.putPatchTransportMethod('put');
+    delete = this.otherMethodTransport('delete');
 
-    patch = this.putPatchTransportMethod(
-        'patch',
-    );
+    patch = this.putPatchTransportMethod('patch');
 
-    head = this.otherMethodTransport(
-        'head',
-    );
-    options = this.otherMethodTransport(
-        'options',
-    );
+    head = this.otherMethodTransport('head');
+    options = this.otherMethodTransport('options');
 }
 
 export default TransportPutPatchDiagnositicsQueue;

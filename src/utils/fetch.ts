@@ -13,7 +13,7 @@ export type HttpMethod =
 
 interface Options {
     body?: BodyInit | Record<string, unknown>;
-    headers?: Record<string, string>;
+    headers?: Record<string, string | number | boolean>;
     cache?: boolean;
     credentials?: RequestCredentials;
     useXHttpMethodOverride?: boolean;
@@ -223,7 +223,11 @@ function getBody(
                                     it is converted to JSON and the appropriate content-type header added.
  * @param {Object} [options.headers] - Object of header key to header value.
  * @param {boolean} [options.cache] - Whether or not to cache.
+<<<<<<< HEAD:src/utils/fetch.js
+ * @param {boolean} [options.useXHttpMethodOverride] - Whether or not to override useXHttpMethod.
+=======
  * @param {boolean} [options.useXHttpMethodOverride]
+>>>>>>> f36959980c7f8659fe7316ac2cf2d9e6a7c2847f:src/utils/fetch.ts
  * @param {string} [options.credentials="include"] - Whether cookies will be included. Will default to true unless overridden.
  *                             "omit" is currently the fetch default
  *                                    {@link https://fetch.spec.whatwg.org/#concept-request-credentials-mode} and means
@@ -269,6 +273,7 @@ function localFetch(method: HttpMethod, url: string, options?: Options) {
         });
     }, 30000);
 
+    // @ts-ignore fix-me revisit to map all headers type to Record<string, string>
     return fetch(url, { headers, method, body, credentials })
         .catch(convertFetchReject.bind(null, url, body, timerId))
         .then(convertFetchSuccess.bind(null, url, body, timerId));

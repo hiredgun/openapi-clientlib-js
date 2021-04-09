@@ -16,7 +16,6 @@ const LOG_AREA = 'TransportAuth';
 // cause an endpoint auth errors to be ignored.
 const DEFAULT_AUTH_ERRORS_DEBOUNCE_PERIOD = 30000; // ms
 
-
 /**
  * This class builds on top of {@link saxo.openapi.TransportCore} and adds authentication management. You need only
  * construct one or the other, they automatically wrap each other. All of the options from the {@link saxo.openapi.TransportCore}
@@ -109,7 +108,7 @@ class TransportAuth {
                 ...options,
                 headers: {
                     ...(options && options.headers),
-                    Authorization: this.authProvider.getToken(),
+                    Authorization: this.authProvider.getToken() as string,
                 },
             };
 

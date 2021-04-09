@@ -37,8 +37,8 @@ function parse(responseText: string, parentRequestId = 0) {
     const lines = responseText.split('\r\n');
     const responseBoundary = lines[0];
     let currentData: {
-        status?: number,
-        response?: Record<string, any>
+        status?: number;
+        response?: Record<string, any>;
     } | null = null;
     let requestId = null;
     const responseData = [];
@@ -110,8 +110,8 @@ type Request = {
     method: string;
     headers?: Record<string, string>;
     url: string;
-    data?: string
-}
+    data?: string;
+};
 
 function build(subRequests: Request[], host: string) {
     if (!subRequests || !host) {

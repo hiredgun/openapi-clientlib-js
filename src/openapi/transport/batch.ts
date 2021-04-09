@@ -13,10 +13,8 @@ import { parse as parseBatch, build as buildBatch } from '../batch-util';
 import log from '../../log';
 import { shouldUseCloud } from './options';
 import type { QueueItem } from './queue';
-// eslint-disable-next-line no-duplicate-imports
 import TransportQueue from './queue';
 import type * as types from './types';
-
 
 const reUrl = /((https?:)?\/\/)?[^/]+(.*)/i;
 
@@ -25,14 +23,13 @@ const LOG_AREA = 'TransportBatch';
 // -- Local methods section --
 
 type BatchResult = {
-    response: string,
+    response: string;
     headers?: {
-        get: (key: string) => string
-    }
-    isNetworkError?: boolean,
-    status?: number
-}
-
+        get: (key: string) => string;
+    };
+    isNetworkError?: boolean;
+    status?: number;
+};
 
 function getParentRequestId(batchResult: BatchResult) {
     let parentRequestId = 0;
@@ -43,9 +40,6 @@ function getParentRequestId(batchResult: BatchResult) {
     }
     return parentRequestId;
 }
-
-
-
 
 // -- Exported methods section --
 
@@ -64,13 +58,17 @@ function getParentRequestId(batchResult: BatchResult) {
 
 class TransportBatch extends TransportQueue {
     basePath = '';
-    host: null | string = null
-    timeoutMs = 0
-    services: types.services = {}
-    isQueueing = true
-    nextTickTimer: ReturnType<typeof setTimeout> | boolean = false
+    host: null | string = null;
+    timeoutMs = 0;
+    services: types.services = {};
+    isQueueing = true;
+    nextTickTimer: ReturnType<typeof setTimeout> | boolean = false;
 
-    constructor(transport: any, baseUrl?: string | null, options?: types.Options | null) {
+    constructor(
+        transport: any,
+        baseUrl?: string | null,
+        options?: types.Options | null,
+    ) {
         super(transport);
 
         if (!baseUrl) {
@@ -109,7 +107,6 @@ class TransportBatch extends TransportQueue {
         return !shouldUseCloud(this.services[item.servicePath]);
     }
 
-
     private emptyQueueIntoServiceGroups = () => {
         const serviceGroupMap: Record<string, QueueItem[]> = {};
         for (let i = 0; i < this.queue.length; i++) {
@@ -123,15 +120,13 @@ class TransportBatch extends TransportQueue {
         }
         this.queue.length = 0;
         return serviceGroupMap;
-    }
-
-
+    };
 
     /**
- * Runs a batch call for a number of sub calls
- * @param {string} serviceGroup
- * @param {Array.<{method: string, args:Array}>} callList
- */
+     * Runs a batch call for a number of sub calls
+     * @param {string} serviceGroup
+     * @param {Array.<{method: string, args:Array}>} callList
+     */
     private runBatchCall = (serviceGroup: string, callList: QueueItem[]) => {
         // Request id for container request that contains all child batched requests.
         // It's required to request it before all child requests are built to preserve correct x-request-id order.
@@ -185,12 +180,18 @@ class TransportBatch extends TransportQueue {
                 cache: false,
                 requestId: parentRequestId,
             })
-            .then((batchResult: BatchResult) => this.batchCallSuccess(callList, batchResult))
-            .catch((errorResponse: BatchResult) => this.batchCallFailure(callList, errorResponse));
-    }
+            .then((batchResult: BatchResult) =>
+                this.batchCallSuccess(callList, batchResult),
+            )
+            .catch((errorResponse: BatchResult) =>
+                this.batchCallFailure(callList, errorResponse),
+            );
+    };
 
-
-    private batchCallFailure = (callList: QueueItem[], batchResponse: BatchResult) => {
+    private batchCallFailure = (
+        callList: QueueItem[],
+        batchResponse: BatchResult,
+    ) => {
         const isAuthFailure = batchResponse && batchResponse.status === 401;
         const isNetworkError =
             !batchResponse ||
@@ -199,7 +200,8 @@ class TransportBatch extends TransportQueue {
                 ? batchResponse.isNetworkError
                 : !batchResponse.status);
 
-        const logFunction = isAuthFailure || isNetworkError ? log.debug : log.error;
+        const logFunction =
+            isAuthFailure || isNetworkError ? log.debug : log.error;
         logFunction(LOG_AREA, 'Batch request failed', batchResponse);
 
         for (let i = 0; i < callList.length; i++) {
@@ -211,9 +213,12 @@ class TransportBatch extends TransportQueue {
                 isNetworkError,
             });
         }
-    }
+    };
 
-    private batchCallSuccess = (callList: QueueItem[], batchResult: BatchResult) => {
+    private batchCallSuccess = (
+        callList: QueueItem[],
+        batchResult: BatchResult,
+    ) => {
         // Previously occurred due to a bug in the auth transport
         if (!(batchResult && batchResult.response)) {
             log.error('Received success call without response', batchResult);
@@ -231,7 +236,8 @@ class TransportBatch extends TransportQueue {
             if (result) {
                 // decide in the same way as transport whether the call succeeded
                 if (
-                    result.status && (result.status < 200 || result.status > 299) &&
+                    result.status &&
+                    (result.status < 200 || result.status > 299) &&
                     result.status !== 304
                 ) {
                     call.reject(result);
@@ -246,8 +252,7 @@ class TransportBatch extends TransportQueue {
                 call.reject();
             }
         }
-    }
-
+    };
 
     private runBatches() {
         this.nextTickTimer = false;
@@ -280,10 +285,8 @@ class TransportBatch extends TransportQueue {
                 );
             }
         }
-
     }
 }
-
 
 // -- Export section --
 export default TransportBatch;

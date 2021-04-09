@@ -3,7 +3,7 @@
  * @ignore
  */
 
-import type * as types from './types'
+import type * as types from './types';
 
 // -- Local variables section --
 
