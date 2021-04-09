@@ -5,6 +5,9 @@
 
 import type AuthProvider from "../authProvider";
 import type * as types from './types';
+import type TransportCore from './core';
+import type TransportAuth from './auth';
+import type TransportBatch from './batch';
 
 // -- Exported methods section --
 
@@ -23,13 +26,7 @@ import type * as types from './types';
  *      If not given then calls will continue even when the authentication is not expired and no 401 calls will be handled.
  */
 
-export type TransporterArgs = [string?, string?, Record<string, string | number>?, Options?]
-
-type Options = {
-    headers?: Record<string, string | boolean>;
-    body?: string | Record<string, string | boolean | number>;
-    queryParams?: Record<string, string | number>
-}
+export type TransporterArgs = [string?, string?, Record<string, string | number>?, types.TransportCoreOptions?]
 
 
 export type QueueItem = {
@@ -38,7 +35,7 @@ export type QueueItem = {
     servicePath: string,
     urlTemplate: string,
     urlArgs?: Record<string, string | number>,
-    options?: Options,
+    options?: types.TransportCoreOptions,
     resolve: (...value: any[]) => void,
     reject: (reason?: any, ...rest: any[]) => void,
 }
@@ -50,7 +47,7 @@ class TransportQueue {
     queue: QueueItem[] = []
     transport: any
     waitForPromises: Promise<any>[] = []
-    constructor(transport: any, authProvider?: AuthProvider) {
+    constructor(transport: TransportAuth | TransportQueue | TransportBatch | TransportCore, authProvider?: AuthProvider) {
         if (!transport) {
             throw new Error(
                 'Missing required parameter: transport in TransportQueue',
@@ -86,7 +83,7 @@ class TransportQueue {
 
 
     private transportMethod = (method: types.Methods) => {
-        return (...args: [string?, string?, Record<string, string | number>?, Options?]) => {
+        return (...args: [string?, string?, Record<string, string | number>?, types.TransportCoreOptions?]) => {
             if (!this.isQueueing) {
                 // checking expiry every time so that if device goes to sleep and is woken then
                 // we intercept a call about to be made and then do not have to cope with the 401 responses

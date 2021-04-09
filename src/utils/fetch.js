@@ -199,10 +199,11 @@ function getBody(method, options) {
  * @param {string} method - The http method.
  * @param {string} url - The url to fetch.
  * @param {Object} [options]
- * @param {string} [options.body] - The body of the request. If this is an object, that is not already handled by the body mixin,
+ * @param {string|Object} [options.body] - The body of the request. If this is an object, that is not already handled by the body mixin,
                                     it is converted to JSON and the appropriate content-type header added.
  * @param {Object} [options.headers] - Object of header key to header value.
  * @param {boolean} [options.cache] - Whether or not to cache.
+ * @param {boolean} [options.useXHttpMethodOverride] - Whether or not to override useXHttpMethod.
  * @param {string} [options.credentials="include"] - Whether cookies will be included. Will default to true unless overridden.
  *                             "omit" is currently the fetch default
  *                                    {@link https://fetch.spec.whatwg.org/#concept-request-credentials-mode} and means

@@ -1,10 +1,11 @@
+/* eslint-disable max-nested-callbacks */
 import mockFetch from '../../test/mocks/fetch';
 import { setTimeout, installClock, uninstallClock } from '../../test/utils';
 import TransportCore from './core';
 
 describe('openapi TransportCore', () => {
-    let transport;
-    let fetch;
+    let transport: TransportCore;
+    let fetch: any;
 
     beforeEach(() => {
         fetch = mockFetch();
@@ -57,6 +58,7 @@ describe('openapi TransportCore', () => {
         it('assumes on-prem for a service path with no relevant configuration', () => {
             transport = new TransportCore('localhost', {
                 services: {
+                    // @ts-expect-error
                     service_path: {},
                 },
             });
@@ -680,7 +682,7 @@ describe('openapi TransportCore', () => {
 
         afterEach(() => transport.dispose());
 
-        function expectTheLanguageToBeSetTo(assertedLanguage) {
+        function expectTheLanguageToBeSetTo(assertedLanguage: string) {
             expect(fetch.mock.calls.length).toEqual(1);
             expect(fetch.mock.calls[0]).toEqual([
                 expect.anything(),
@@ -697,7 +699,7 @@ describe('openapi TransportCore', () => {
             expectTheLanguageToBeSetTo('dk, *;q=0.5');
             fetch.mockClear();
 
-            transport.put('service_path', 'url', null, null);
+            transport.put('service_path', 'url', null,);
             expectTheLanguageToBeSetTo('dk, *;q=0.5');
             fetch.mockClear();
 
@@ -782,7 +784,7 @@ describe('openapi TransportCore', () => {
             ]);
             fetch.mockClear();
 
-            transport.put('service_path', 'url', null, null);
+            transport.put('service_path', 'url', null);
             expect(fetch.mock.calls.length).toEqual(1);
             expect(fetch.mock.calls[0]).toEqual([
                 expect.anything(),

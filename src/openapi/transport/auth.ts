@@ -16,13 +16,6 @@ const LOG_AREA = 'TransportAuth';
 // cause an endpoint auth errors to be ignored.
 const DEFAULT_AUTH_ERRORS_DEBOUNCE_PERIOD = 30000; // ms
 
-// -- Local methods section --
-
-
-
-
-
-// -- Exported methods section --
 
 /**
  * This class builds on top of {@link saxo.openapi.TransportCore} and adds authentication management. You need only
@@ -48,7 +41,7 @@ class TransportAuth {
     > = {};
 
     // needs to map with transport core interface
-    transport: any;
+    transport: TransportCore;
     authProvider: AuthProvider;
     constructor(
         baseUrl: string,
@@ -63,7 +56,6 @@ class TransportAuth {
             this.authErrorsDebouncePeriod = options.authErrorsDebouncePeriod;
         }
 
-        // @ts-ignore fix-me
         this.transport = new TransportCore(baseUrl, options);
 
         // Map of authorization error counts per endpoint/url.
@@ -108,10 +100,10 @@ class TransportAuth {
     private makeTransportMethod = (method: types.Methods) => {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         return (
-            servicePath: string,
-            urlTemplate: string,
-            templateArgs: string[],
-            options: any,
+            servicePath?: string,
+            urlTemplate?: string,
+            templateArgs?: Record<string, string | number>,
+            options?: types.TransportCoreOptions,
         ) => {
             const newOptions = {
                 ...options,
