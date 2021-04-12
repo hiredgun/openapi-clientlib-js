@@ -50,7 +50,6 @@ class TransportPutPatchDiagnositicsQueue {
             );
         }
 
-        this.isQueueing = true;
         this.transport = transport;
         this.transportQueue = new TransportQueue(transport);
 
@@ -91,7 +90,7 @@ class TransportPutPatchDiagnositicsQueue {
     }
 
     private otherMethodTransport(method: Methods) {
-        return (...args: any) => this.transport[method](args);
+        return (...args: any) => this.transport[method](...args);
     }
 
     get = this.otherMethodTransport('get');
