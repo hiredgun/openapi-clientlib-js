@@ -1,4 +1,4 @@
-import Connection from './connection';
+import Connection from './connection.ts';
 import * as transportTypes from './transportTypes';
 import 'fast-text-encoding';
 
