@@ -113,7 +113,7 @@ class ParserProtobuf extends ParserBase {
      * @param {String} schemaName - The name of a schema to be used for parsing.
      * @return {Object} - Result of parsing, if successful. Returns null if parsing fails or there is no data.
      */
-    parse(data: string | Uint8Array | null, schemaName: string) {
+    parse(data: string | Uint8Array | null | undefined, schemaName: string) {
         if (!data) {
             return null;
         }

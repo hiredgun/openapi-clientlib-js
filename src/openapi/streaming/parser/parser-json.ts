@@ -7,7 +7,7 @@ class ParserJson extends ParserBase {
     static FORMAT_NAME = 'application/json';
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    parse<T>(data: T, _?: any): T {
+    parse<T>(data?: T, _?: any): T | undefined {
         return data;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

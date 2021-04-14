@@ -24,7 +24,11 @@ const parsersMap: ParsersMap = {};
 
 const defaultParser = ParserJson;
 
-const getId = (format: string, servicePath: string, url: string) => {
+const getId = (
+    format: string | undefined,
+    servicePath: string,
+    url: string,
+) => {
     if (format === ParserJson.FORMAT_NAME || !format) {
         // Makes sure that all JSON formats share same single parser.
         return ParserJson.FORMAT_NAME;
