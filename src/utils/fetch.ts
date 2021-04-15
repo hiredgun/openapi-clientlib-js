@@ -13,7 +13,7 @@ export type HttpMethod =
 
 interface Options {
     body?: BodyInit | Record<string, unknown>;
-    headers?: Record<string, string | number | boolean>;
+    headers?: Record<string, string>;
     cache?: boolean;
     credentials?: RequestCredentials;
     useXHttpMethodOverride?: boolean;

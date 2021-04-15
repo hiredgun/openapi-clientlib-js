@@ -271,7 +271,6 @@ class TransportBatch extends TransportQueue {
         if (!this.nextTickTimer || this.timeoutMs > 0) {
             if (this.timeoutMs === 0) {
                 this.nextTickTimer = true;
-                // @ts-ignore
                 nextTick(this.runBatches);
             } else {
                 if (this.nextTickTimer) {

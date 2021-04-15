@@ -68,7 +68,7 @@ describe('openapi TransportPutPatchDiagnositicsQueue', () => {
         ${'patch'}
     `(
         'Handles a $method failure',
-        // @ts-ignore
+        // @ts-ignore its breaking next test if we remove done but somehow its picking wrong type definition from JEST
         ({ method }, done) => {
             transportPutPatch = new TransportPutPatchDiagnositicsQueue(
                 transport,

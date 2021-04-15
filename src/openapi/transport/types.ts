@@ -4,7 +4,7 @@ export type HTTPMethods = 'GET' | 'PUT' | 'POST' | 'DELETE' | 'PATCH' | 'OPTIONS
 export type APIStatusCode = 401 | 404 | 200 | 201 | 500;
 
 export type UseCloud = {
-    useCloud: boolean | string | (() => boolean | string);
+    useCloud?: boolean | string | (() => boolean | string);
 };
 
 export type Services = {
@@ -29,7 +29,7 @@ export interface APIResponse {
 }
 
 export interface TransportCoreOptions {
-    headers?: Record<string, string | number | boolean>;
+    headers?: Record<string, string>;
     queryParams?: Record<string, string | number>;
     body?: string | Record<string, string | number | boolean> | URLSearchParams | File | FormData;
     cache?: boolean;

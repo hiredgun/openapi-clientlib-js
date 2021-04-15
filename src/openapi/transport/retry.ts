@@ -94,8 +94,7 @@ class TransportRetry {
                 });
             }
             // calls underlying transport http method
-            // eslint-disable-next-line prefer-spread
-            return this.transport[method].apply(this.transport, args);
+            return this.transport[method](...args)
         };
     }
 

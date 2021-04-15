@@ -12,6 +12,7 @@ import type { Methods } from './types';
 
 // -- Local variables section --
 
+// fix-me typo
 const LOG_AREA = 'TransportPutPatchDiagnositicsQueue';
 
 // -- Exported methods section --
@@ -84,8 +85,7 @@ class TransportPutPatchDiagnositicsQueue {
             const transport = this.isQueueing
                 ? this.transportQueue
                 : this.transport;
-            // eslint-disable-next-line prefer-spread
-            return transport[method].apply(transport, args);
+            return transport[method](...args);
         };
     }
 

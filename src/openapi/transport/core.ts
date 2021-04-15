@@ -61,7 +61,7 @@ class TransportCore {
             options?: TransportCoreOptions,
         ) => {
             let body;
-            let headers: Record<string, string | number | boolean> = {};
+            let headers: Record<string, string> = {};
             let cache = this.defaultCache;
             let queryParams;
 
@@ -93,7 +93,7 @@ class TransportCore {
 
             if (!headers['X-Request-Id']) {
                 headers['X-Request-Id'] =
-                    (options && options.requestId) || getRequestId();
+                    (options && options.requestId) || getRequestId().toString();
             }
 
             const basePath = shouldUseCloud(this.services[servicePath])

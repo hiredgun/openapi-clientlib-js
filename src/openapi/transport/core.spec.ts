@@ -58,7 +58,6 @@ describe('openapi TransportCore', () => {
         it('assumes on-prem for a service path with no relevant configuration', () => {
             transport = new TransportCore('localhost', {
                 services: {
-                    // @ts-expect-error
                     service_path: {},
                 },
             });
