@@ -94,7 +94,7 @@ class TransportRetry {
                 });
             }
             // calls underlying transport http method
-            return this.transport[method](...args)
+            return this.transport[method](...args);
         };
     }
 

@@ -92,6 +92,7 @@ class TransportCore {
             }
 
             if (!headers['X-Request-Id']) {
+                // making toString as headers accept string types in values
                 headers['X-Request-Id'] =
                     (options && options.requestId) || getRequestId().toString();
             }
