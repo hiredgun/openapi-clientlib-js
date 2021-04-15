@@ -7,7 +7,12 @@ import { formatUrl } from '../../utils/string';
 import fetch from '../../utils/fetch';
 import { getRequestId } from '../../utils/request';
 import { shouldUseCloud } from './options';
-import type { HTTPMethods, Options, TransportCoreOptions } from './types';
+import type {
+    HTTPMethods,
+    Options,
+    TransportCoreOptions,
+    Services,
+} from './types';
 
 /**
  * Options pertaining to a specific service path.
@@ -28,10 +33,10 @@ import type { HTTPMethods, Options, TransportCoreOptions } from './types';
  * @param {Object.<string, saxo.ServiceOptions>} [options.services] - Per-service options, keyed by service path.
  */
 
-class Transport {
+class TransportCore {
     baseUrl: string;
     language?: string;
-    services: Record<string, any> = {};
+    services: Services = {};
     defaultCache = true;
     useXHttpMethodOverride = false;
 
@@ -52,7 +57,7 @@ class Transport {
         return (
             servicePath?: string,
             urlTemplate?: string,
-            templateArgs?: any,
+            templateArgs?: Record<string, string | number> | null,
             options?: TransportCoreOptions,
         ) => {
             let body;
@@ -498,4 +503,4 @@ class Transport {
 
 // -- Export section --
 
-export default Transport;
+export default TransportCore;

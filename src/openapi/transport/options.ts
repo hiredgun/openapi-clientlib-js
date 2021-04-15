@@ -11,7 +11,7 @@ import type * as types from './types';
 
 // -- Exported methods section --
 
-function shouldUseCloud(serviceOptions: types.UseCloud) {
+function shouldUseCloud(serviceOptions?: types.UseCloud) {
     const { useCloud } = serviceOptions || {};
 
     return typeof useCloud === 'function' ? useCloud() : useCloud;

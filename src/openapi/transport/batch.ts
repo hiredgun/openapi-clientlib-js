@@ -58,9 +58,9 @@ function getParentRequestId(batchResult: BatchResult) {
 
 class TransportBatch extends TransportQueue {
     basePath = '';
-    host: null | string = null;
+    host: string = location.host;
     timeoutMs = 0;
-    services: types.services = {};
+    services: types.Services = {};
     isQueueing = true;
     nextTickTimer: ReturnType<typeof setTimeout> | boolean = false;
 
@@ -93,17 +93,15 @@ class TransportBatch extends TransportQueue {
         // Batching is a service group level facility, so isn't applicable/available for /oapi
         this.basePath = basePath + 'openapi/';
 
-        if (options && options.host) {
+        if (options?.host) {
             this.host = options.host;
-        } else {
-            this.host = location.host;
         }
 
-        this.timeoutMs = (options && options.timeoutMs) || 0;
-        this.services = (options && options.services) || {};
+        this.timeoutMs = options?.timeoutMs || 0;
+        this.services = options?.services || {};
     }
 
-    shouldQueue(item: QueueItem) {
+    protected shouldQueue(item: QueueItem) {
         return !shouldUseCloud(this.services[item.servicePath]);
     }
 
@@ -254,7 +252,7 @@ class TransportBatch extends TransportQueue {
         }
     };
 
-    private runBatches() {
+    private runBatches = () => {
         this.nextTickTimer = false;
         const serviceGroupMap = this.emptyQueueIntoServiceGroups();
         const serviceGroups = Object.keys(serviceGroupMap);
@@ -266,21 +264,21 @@ class TransportBatch extends TransportQueue {
                 this.runBatchCall(serviceGroups[i], serviceGroupList);
             }
         }
-    }
+    };
 
-    addToQueue(item: QueueItem) {
+    protected addToQueue(item: QueueItem) {
         super.addToQueue(item);
         if (!this.nextTickTimer || this.timeoutMs > 0) {
             if (this.timeoutMs === 0) {
                 this.nextTickTimer = true;
                 // @ts-ignore
-                nextTick(this.runBatches.bind(this));
+                nextTick(this.runBatches);
             } else {
                 if (this.nextTickTimer) {
                     return;
                 }
                 this.nextTickTimer = setTimeout(
-                    this.runBatches.bind(this),
+                    this.runBatches,
                     this.timeoutMs,
                 );
             }

@@ -64,9 +64,8 @@ class TransportRetry {
                 'Missing required parameter: transport in TransportRetry',
             );
         }
-        if (options?.retryTimeout) {
-            this.retryTimeout =
-                options.retryTimeout > 0 ? options.retryTimeout : 0;
+        if (options?.retryTimeout && options.retryTimeout > 0) {
+            this.retryTimeout = options.retryTimeout;
         }
         this.methods = options?.methods ? options.methods : {};
 
@@ -108,7 +107,7 @@ class TransportRetry {
     head = this.transportMethod('head');
     options = this.transportMethod('options');
 
-    sendTransportCall = (transportCall: TransportCall) => {
+    protected sendTransportCall = (transportCall: TransportCall) => {
         this.transport[transportCall.method](transportCall.args).then(
             transportCall.resolve,
             (response: APIResponse) => {
@@ -142,7 +141,7 @@ class TransportRetry {
         );
     };
 
-    addFailedCall(transportCall: TransportCall) {
+    protected addFailedCall(transportCall: TransportCall) {
         const callOptions = this.methods[transportCall.method];
         if (
             callOptions.retryTimeouts &&
@@ -165,14 +164,14 @@ class TransportRetry {
         transportCall.retryCount++;
     }
 
-    retryFailedCalls() {
+    protected retryFailedCalls() {
         this.retryTimer = null;
         while (this.failedCalls.length > 0) {
             this.sendTransportCall(this.failedCalls.shift() as TransportCall);
         }
     }
 
-    retryIndividualFailedCall(transportCall: TransportCall) {
+    protected retryIndividualFailedCall(transportCall: TransportCall) {
         transportCall.retryTimer = null;
         const individualFailedCallsIndex = this.individualFailedCalls.indexOf(
             transportCall,

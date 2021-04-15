@@ -3,15 +3,17 @@ export type HTTPMethods = 'GET' | 'PUT' | 'POST' | 'DELETE' | 'PATCH' | 'OPTIONS
 
 export type APIStatusCode = 401 | 404 | 200 | 201 | 500;
 
-export type UseCloud = Record<'useCloud', boolean | string | (() => boolean | string)>;
+export type UseCloud = {
+    useCloud: boolean | string | (() => boolean | string);
+};
 
-export type services = {
+export type Services = {
     [k in string]: UseCloud;
 };
 export interface Options {
     authErrorsDebouncePeriod?: number;
     language?: string;
-    services?: services;
+    services?: Services;
     host?: 'string';
     timeoutMs?: number;
     defaultCache?: boolean;

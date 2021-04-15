@@ -159,14 +159,14 @@ class TransportQueue {
         promise.then(() => this.onWaitForPromiseResolved(promise));
     }
 
-    emptyQueue() {
+    protected emptyQueue() {
         for (let i = 0; i < this.queue.length; i++) {
             this.runQueueItem(this.queue[i]);
         }
         this.queue.length = 0;
     }
 
-    runQueueItem(item: QueueItem) {
+    protected runQueueItem(item: QueueItem) {
         this.transport[item.method](...item.args).then(
             (...args: any[]) => {
                 item.resolve(...args);
@@ -188,12 +188,12 @@ class TransportQueue {
         );
     }
 
-    addToQueue(item: QueueItem) {
+    protected addToQueue(item: QueueItem) {
         this.queue.push(item);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    shouldQueue(_item: QueueItem) {
+    protected shouldQueue(_item: QueueItem) {
         return true;
     }
 

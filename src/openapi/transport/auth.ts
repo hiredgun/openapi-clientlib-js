@@ -97,7 +97,6 @@ class TransportAuth {
     }
 
     private makeTransportMethod = (method: types.Methods) => {
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
         return (
             servicePath?: string,
             urlTemplate?: string,

@@ -66,8 +66,9 @@ describe('openapi TransportPutPatchDiagnositicsQueue', () => {
         method
         ${'put'}
         ${'patch'}
-    `('Handles a $method failure',
-        // @ts-expect-error
+    `(
+        'Handles a $method failure',
+        // @ts-ignore
         ({ method }, done) => {
             transportPutPatch = new TransportPutPatchDiagnositicsQueue(
                 transport,
@@ -116,7 +117,8 @@ describe('openapi TransportPutPatchDiagnositicsQueue', () => {
                 );
                 done();
             });
-        });
+        },
+    );
 
     it('handles successful put/patch', (done) => {
         transportPutPatch = new TransportPutPatchDiagnositicsQueue(
