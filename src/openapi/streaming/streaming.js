@@ -820,6 +820,7 @@ Streaming.prototype.READABLE_CONNECTION_STATE_MAP =
  *                              subscription.UPDATE_TYPE_DELTA or subscription.UPDATE_TYPE_SNAPSHOT
  * @param {function} [options.onError] - A callback function that is invoked when an error occurs.
  * @param {function} [options.onQueueEmpty] - A callback function that is invoked after the last action is dequeued.
+ * @param {function} [options.onNetworkError] - A callback function that is invoked on network error.
  * @returns {saxo.openapi.StreamingSubscription} A subscription object.
  */
 Streaming.prototype.createSubscription = function (

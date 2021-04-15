@@ -1,4 +1,4 @@
-import protobuf from 'protobufjs/dist/protobuf';
+import protobuf from 'protobufjs';
 import {
     setTimeout,
     installClock,
@@ -21,12 +21,13 @@ ParserFacade.addParsers({
 });
 
 describe('openapi StreamingSubscription', () => {
-    let transport;
-    let updateSpy;
-    let createdSpy;
-    let errorSpy;
-    let authManager;
-    let networkErrorSpy;
+    // FIXME any
+    let transport: any;
+    let updateSpy: jest.Mock;
+    let createdSpy: jest.Mock;
+    let errorSpy: jest.Mock;
+    let authManager: { getAuth: jest.Mock };
+    let networkErrorSpy: jest.Mock;
 
     function sendInitialResponse(response) {
         if (!response) {
