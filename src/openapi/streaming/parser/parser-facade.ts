@@ -88,14 +88,14 @@ const ParserFacade = {
      * @param {String} url - The url for given endpoint
      * @return {Object} Parser
      */
-    getParser(format: string, servicePath: string, url: string) {
+    getParser(format: string | undefined, servicePath: string, url: string) {
         const id = getId(format, servicePath, url);
 
         if (parsersMap[id]) {
             return parsersMap[id];
         }
-        const Parser = parserCreators[format] || defaultParser;
-        const engine = enginesMap[format];
+        const Parser = (format && parserCreators[format]) || defaultParser;
+        const engine = format && enginesMap[format];
 
         parsersMap[id] = new Parser(id, engine);
 
