@@ -73,8 +73,8 @@ const ParserFacade = {
      * @param {String} format - Data format ie. application/json
      * @return {Boolean} - Returns true if format is supported. Returns false if format is not supported by available parsing methods.
      */
-    isFormatSupported(format: string) {
-        return Boolean(parserCreators[format]);
+    isFormatSupported(format?: string) {
+        return Boolean(parserCreators[String(format)]);
     },
 
     /**

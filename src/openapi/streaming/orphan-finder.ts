@@ -6,20 +6,19 @@
  * checks subscriptions when a new one is started and then once per second overall.
  */
 import log from '../../log';
+import type Subscription from './subscription';
 
 const LOG_AREA = 'StreamingOrphanFinder';
 
 const DEFAULT_START_DELAY = 1000;
 const MAX_UPDATE_DELAY = 5000;
 
-interface SubscriptionToReplace {}
-
 interface OnOrphanFoundHandler {
-    (subscription: SubscriptionToReplace): void;
+    (subscription: Subscription): void;
 }
 
 class StreamingOrphanFinder {
-    subscriptions: SubscriptionToReplace[];
+    subscriptions: Subscription[];
     nextUpdateTime = Infinity;
     onOrphanFound: OnOrphanFoundHandler;
     startDelay: number;
@@ -28,7 +27,7 @@ class StreamingOrphanFinder {
     minCheckTime = 0;
 
     constructor(
-        subscriptions: SubscriptionToReplace[],
+        subscriptions: Subscription[],
         onOrphanFound: OnOrphanFoundHandler,
         startDelay?: number,
     ) {

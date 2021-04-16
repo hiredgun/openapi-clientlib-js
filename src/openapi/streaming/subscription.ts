@@ -30,9 +30,9 @@ const stateFlags = {
     READY_FOR_UNSUBSCRIBE_BY_TAG: 32,
 } as const;
 
-type SubscriptionState = typeof stateFlags[keyof typeof stateFlags];
+export type SubscriptionState = typeof stateFlags[keyof typeof stateFlags];
 
-interface StreamingOptions {
+export interface StreamingOptions {
     headers?: Record<string, string>;
     onUpdate?: (data: unknown, updateType: SubscriptionUpdateTypes) => void;
     onError?: (data: unknown) => void;
@@ -40,9 +40,9 @@ interface StreamingOptions {
     onNetworkError?: () => void;
 }
 
-interface SubscriptionArgs {
+export interface SubscriptionArgs {
     Format?: string;
-    Arguments?: Record<string, any>;
+    Arguments?: Record<string, unknown>;
     RefreshRate?: number;
     Top?: number;
     Tag?: string;
@@ -805,7 +805,7 @@ class Subscription {
     /**
      * Remove a callback which was invoked when the subscription state changes.
      */
-    removeStateChangedCallback(callback: (...args: any) => void) {
+    removeStateChangedCallback(callback: (...args: unknown[]) => void) {
         const index = this.onStateChangedCallbacks.indexOf(callback);
 
         if (index > -1) {
@@ -878,7 +878,7 @@ class Subscription {
      * can ignore them. It also ensures that we don't hit the subscription limit
      * because the subscribe manages to get to the server before the unsubscribe.
      */
-    private reset() {
+    reset() {
         switch (this.currentState) {
             case this.STATE_UNSUBSCRIBED:
             case this.STATE_UNSUBSCRIBE_REQUESTED:
@@ -925,9 +925,8 @@ class Subscription {
      * Try to subscribe.
      * @param {Boolean} modify - The modify flag indicates that subscription action is part of subscription modification.
      *                           If true, any unsubscribe before subscribe will be kept. Otherwise they are dropped.
-     * @private
      */
-    private onSubscribe() {
+    onSubscribe() {
         if (this.isDisposed) {
             throw new Error(
                 'Subscribing a disposed subscription - you will not get data',
@@ -942,7 +941,7 @@ class Subscription {
      * @param {Object} newArgs - Updated arguments of modified subscription.
      */
     onModify(
-        newArgs: Record<string, any>,
+        newArgs: Record<string, unknown>,
         options?: { isPatch: boolean; patchArgsDelta: Record<string, unknown> },
     ) {
         if (this.isDisposed) {
@@ -967,7 +966,7 @@ class Subscription {
     /**
      * Try to unsubscribe.
      */
-    private onUnsubscribe(forceUnsubscribe: boolean) {
+    onUnsubscribe(forceUnsubscribe?: boolean) {
         if (this.isDisposed) {
             log.warn(
                 LOG_AREA,
@@ -1016,7 +1015,7 @@ class Subscription {
      * Handles the 'data' event raised by Streaming.
      * @returns {boolean} false if the update is not for this subscription
      */
-    private onStreamingData(message: {
+    onStreamingData(message: {
         Data?: string;
         [p: string]: unknown;
     }): false | void {

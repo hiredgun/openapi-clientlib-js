@@ -1,8 +1,8 @@
 import emitter from '../../micro-emitter';
-import { extend } from '../../utils/object';
 import log from '../../log';
 import { padLeft } from '../../utils/string';
 import Subscription from './subscription';
+import type { SubscriptionArgs, StreamingOptions } from './subscription';
 import ParserFacade from './parser/parser-facade';
 import StreamingOrphanFinder from './orphan-finder';
 import Connection from './connection/connection';
@@ -14,16 +14,27 @@ import type { IHubProtocol } from '@microsoft/signalr';
 
 export type TransportTypes = typeof streamingTransports[keyof typeof streamingTransports];
 
-interface StreamingConfigurableOptions {
+type ConnectionState = keyof typeof connectionConstants.READABLE_CONNECTION_STATE_MAP;
+export interface RetryDelayLevel {
+    level: number;
+    delay: number;
+}
+export interface StreamingConfigurableOptions {
+    waitForPageLoad: boolean;
+    transportTypes?: Array<TransportTypes>;
     connectRetryDelay?: number;
-    connectRetryDelayLevels?: { level: number; delay: number };
-    waitForPageLoad?: boolean;
+    connectRetryDelayLevels?: RetryDelayLevel[];
     parsers?: Record<string, new (...args: any) => ParserBase>;
     parserEngines?: Record<string, unknown>;
     transport?: Array<TransportTypes>;
-    transportTypes?: Array<TransportTypes>;
     messageProtocol?: Record<string, any>;
-    messageSerializationProtocol: IHubProtocol;
+    messageSerializationProtocol?: IHubProtocol;
+}
+
+interface InternalOptions {
+    waitForPageLoad: boolean;
+    transport?: Array<TransportTypes>;
+    messageSerializationProtocol?: IHubProtocol;
 }
 
 const OPENAPI_CONTROL_MESSAGE_PREFIX = '_';
@@ -42,7 +53,6 @@ const DEFAULT_STREAMING_OPTIONS = {
         streamingTransports.LEGACY_SIGNALR_WEBSOCKETS,
         streamingTransports.LEGACY_SIGNALR_LONG_POLLING,
     ],
-    connectRetryDelay: DEFAULT_CONNECT_RETRY_DELAY,
 };
 
 /**
@@ -53,7 +63,11 @@ const DEFAULT_STREAMING_OPTIONS = {
  * @param defaultDelay {number} - The default delay.
  * @returns {number} Matching delay to retry index/try/count.
  */
-export function findRetryDelay(retryLevels, retryIndex, defaultDelay) {
+export function findRetryDelay(
+    retryLevels: RetryDelayLevel[],
+    retryIndex: number,
+    defaultDelay: number,
+) {
     let lastFoundDelay = defaultDelay;
 
     for (let i = 0; i < retryLevels.length; i++) {
@@ -143,7 +157,7 @@ class Streaming {
         connectionConstants.READABLE_CONNECTION_STATE_MAP;
 
     retryCount = 0;
-    connectionState = this.CONNECTION_STATE_INITIALIZING;
+    connectionState: ConnectionState = this.CONNECTION_STATE_INITIALIZING;
     baseUrl: string;
     authProvider: AuthProvider;
     // FIXME any
@@ -154,20 +168,38 @@ class Streaming {
     orphanFinder: StreamingOrphanFinder;
     // FIXME any
     connection: any;
-    // options: any;
-    // reconnecting: any;
-    // contextId: string;
-    // retryDelay: any;
-    // retryDelayLevels: any;
-    // reconnectTimer: NodeJS.Timeout;
-    // disposed: any;
+    options: InternalOptions = {
+        waitForPageLoad: false,
+        transport: [
+            streamingTransports.LEGACY_SIGNALR_WEBSOCKETS,
+            streamingTransports.LEGACY_SIGNALR_LONG_POLLING,
+        ],
+    };
+    reconnecting = false;
+    contextId?: string;
+    retryDelay = DEFAULT_CONNECT_RETRY_DELAY;
+    retryDelayLevels?: RetryDelayLevel[];
+    reconnectTimer?: number;
+    disposed = false;
+
+    // fix-me need to remove once we have microEmitter implement as class
+    trigger: any;
+
+    // fix-me need to remove once we have microEmitter implement as class
+    on: any;
+
+    // fix-me need to remove once we have microEmitter implement as class
+    one: any;
+
+    // fix-me need to remove once we have microEmitter implement as class
+    off: any;
 
     constructor(
         // FIXME any
         transport: any,
         baseUrl: string,
         authProvider: AuthProvider,
-        options?: StreamingConfigurableOptions,
+        options?: Partial<StreamingConfigurableOptions>,
     ) {
         emitter.mixinTo(this);
 
@@ -191,6 +223,47 @@ class Streaming {
         this.init();
     }
 
+    setOptions(options: StreamingConfigurableOptions) {
+        options = options || {};
+
+        const {
+            waitForPageLoad,
+            transportTypes,
+            transport,
+            messageSerializationProtocol,
+            connectRetryDelay,
+            connectRetryDelayLevels,
+            parserEngines,
+            parsers,
+        } = options;
+
+        this.options = {
+            // Faster and does not cause problems after IE8
+            waitForPageLoad,
+            transport: transportTypes || transport,
+            // Message serialization protocol used by signalr core. Its different from protobuf used for each subscription endpoint
+            // Streaming service relays message payload received from publishers as it is, which could be protobuf encoded.
+            // This protocol is used to serialize the message envelope rather than the payload
+            messageSerializationProtocol,
+        };
+
+        if (typeof connectRetryDelay === 'number') {
+            this.retryDelay = connectRetryDelay;
+        }
+
+        if (typeof connectRetryDelayLevels === 'object') {
+            this.retryDelayLevels = connectRetryDelayLevels;
+        }
+
+        if (parserEngines) {
+            ParserFacade.addEngines(parserEngines);
+        }
+
+        if (parsers) {
+            ParserFacade.addParsers(parsers);
+        }
+    }
+
     /**
      * Initializes a connection, and starts handling streaming events.
      *
@@ -203,6 +276,7 @@ class Streaming {
             this.connection.dispose();
         }
 
+        // @ts-expect-error FIXME remove once Connection is migrated
         this.connection = new Connection(
             this.options,
             this.baseUrl,
@@ -243,7 +317,7 @@ class Streaming {
     /**
      * Reconnects the streaming socket when it is disconnected
      */
-    private connect(isReconnection) {
+    private connect(isReconnection?: boolean) {
         if (
             this.connectionState !== this.CONNECTION_STATE_DISCONNECTED &&
             this.connectionState !== this.CONNECTION_STATE_INITIALIZING
@@ -300,7 +374,7 @@ class Streaming {
 
         const now = new Date();
         const midnight = new Date(now.toDateString());
-        const msSinceMidnight = now - midnight;
+        const msSinceMidnight = Number(now) - Number(midnight);
         const randomNumber = Math.floor(Math.random() * 100);
 
         const contextId =
@@ -328,13 +402,16 @@ class Streaming {
 
         this.retryCount++;
         this.reconnecting = true;
-        this.reconnectTimer = setTimeout(this.connect.bind(this, true), delay);
+        this.reconnectTimer = window.setTimeout(
+            this.connect.bind(this, true),
+            delay,
+        );
     }
 
     /**
      * Handles connection state change
      */
-    private onConnectionStateChanged(nextState) {
+    private onConnectionStateChanged(nextState: ConnectionState) {
         const connectionTransport = this.getActiveTransportName();
 
         if (nextState === this.connectionState) {
@@ -434,6 +511,7 @@ class Streaming {
         this.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
     }
 
+    // @ts-expect-error FIXME once transports are migrated to TS
     private processUpdate(update) {
         try {
             if (update.ReferenceId[0] === OPENAPI_CONTROL_MESSAGE_PREFIX) {
@@ -457,6 +535,7 @@ class Streaming {
      * handles the connection received event from SignalR
      * @param updates
      */
+    // @ts-expect-error FIXME once transports are migrated to TS
     private onReceived(updates) {
         if (!updates) {
             log.warn(LOG_AREA, 'onReceived called with no data', updates);
@@ -478,18 +557,21 @@ class Streaming {
      * Finds a subscription by referenceId or returns undefined if not found
      * @param {string} referenceId
      */
-    private findSubscriptionByReferenceId(referenceId) {
+    private findSubscriptionByReferenceId(referenceId: string) {
         for (let i = 0; i < this.subscriptions.length; i++) {
             if (this.subscriptions[i].referenceId === referenceId) {
                 return this.subscriptions[i];
             }
         }
+
+        return undefined;
     }
 
     /**
      * Sends an update to a subscription by finding it and calling its callback
      * @param update
      */
+    // @ts-expect-error FIXME once transports are migrated to TS
     private sendDataUpdateToSubscribers(update) {
         const subscription = this.findSubscriptionByReferenceId(
             update.ReferenceId,
@@ -504,6 +586,7 @@ class Streaming {
         }
     }
 
+    // @ts-expect-error FIXME once transports are migrated to TS
     private getHeartbeats(message) {
         if (message.Heartbeats) {
             return message.Heartbeats;
@@ -516,6 +599,7 @@ class Streaming {
         return null;
     }
 
+    // @ts-expect-error FIXME once transports are migrated to TS
     private getTargetReferenceIds(message) {
         if (message.TargetReferenceIds) {
             return message.TargetReferenceIds;
@@ -532,6 +616,7 @@ class Streaming {
      * Handles a control message on the streaming connection
      * @param {Object} message From open-api
      */
+    // @ts-expect-error FIXME once transports are migrated to TS
     private handleControlMessage(message) {
         switch (message.ReferenceId) {
             case OPENAPI_CONTROL_MESSAGE_HEARTBEAT:
@@ -567,7 +652,12 @@ class Streaming {
      * Fires heartbeats to relevant subscriptions
      * @param {Array.<{OriginatingReferenceId: string, Reason: string}>} heartbeatList
      */
-    private handleControlMessageFireHeartbeats(heartbeatList) {
+    private handleControlMessageFireHeartbeats(
+        heartbeatList: Array<{
+            OriginatingReferenceId: string;
+            Reason: string;
+        }>,
+    ) {
         log.debug(LOG_AREA, 'heartbeats received', heartbeatList);
         for (let i = 0; i < heartbeatList.length; i++) {
             const heartbeat = heartbeatList[i];
@@ -590,7 +680,7 @@ class Streaming {
     /**
      * Resets subscriptions passed
      */
-    private resetSubscriptions(subscriptions) {
+    private resetSubscriptions(subscriptions: Subscription[]) {
         for (let i = 0; i < subscriptions.length; i++) {
             const subscription = subscriptions[i];
             subscription.reset();
@@ -602,7 +692,7 @@ class Streaming {
      * reset all subscriptions.
      * @param {Array.<string>} referenceIdList
      */
-    private handleControlMessageResetSubscriptions(referenceIdList) {
+    private handleControlMessageResetSubscriptions(referenceIdList: string[]) {
         if (!referenceIdList || !referenceIdList.length) {
             log.debug(LOG_AREA, 'Resetting all subscriptions');
             this.resetSubscriptions(this.subscriptions.slice(0));
@@ -711,7 +801,7 @@ class Streaming {
      * Called when an orphan is found - resets that subscription
      * @param subscription
      */
-    private onOrphanFound(subscription) {
+    private onOrphanFound(subscription: Subscription) {
         log.info(
             LOG_AREA,
             'Subscription has become orphaned - resetting',
@@ -721,7 +811,10 @@ class Streaming {
         subscription.reset();
     }
 
-    private handleSubscriptionReadyForUnsubscribe(subscriptions, resolve) {
+    private handleSubscriptionReadyForUnsubscribe(
+        subscriptions: Subscription[],
+        resolve: (...args: unknown[]) => void,
+    ) {
         let allSubscriptionsReady = true;
         for (
             let i = 0;
@@ -738,7 +831,11 @@ class Streaming {
         }
     }
 
-    private getSubscriptionsByTag(servicePath, url, tag) {
+    private getSubscriptionsByTag(
+        servicePath: string,
+        url: string,
+        tag: string,
+    ) {
         const subscriptionsToRemove = [];
 
         for (let i = 0; i < this.subscriptions.length; i++) {
@@ -757,10 +854,10 @@ class Streaming {
     }
 
     private getSubscriptionsReadyPromise(
-        subscriptionsToRemove,
-        shouldDisposeSubscription,
+        subscriptionsToRemove: Subscription[],
+        shouldDisposeSubscription: boolean,
     ) {
-        let onStateChanged;
+        let onStateChanged: (...args: unknown[]) => void;
 
         return new Promise((resolve) => {
             onStateChanged = this.handleSubscriptionReadyForUnsubscribe.bind(
@@ -789,10 +886,10 @@ class Streaming {
     }
 
     private unsubscribeSubscriptionByTag(
-        servicePath,
-        url,
-        tag,
-        shouldDisposeSubscription,
+        servicePath: string,
+        url: string,
+        tag: string,
+        shouldDisposeSubscription: boolean,
     ) {
         const subscriptionsToRemove = this.getSubscriptionsByTag(
             servicePath,
@@ -811,7 +908,7 @@ class Streaming {
                     contextId: this.contextId,
                     tag,
                 })
-                .catch((response) =>
+                .catch((response: unknown) =>
                     log.error(
                         LOG_AREA,
                         'An error occurred unsubscribing by tag',
@@ -832,7 +929,7 @@ class Streaming {
         });
     }
 
-    private removeSubscription(subscription) {
+    private removeSubscription(subscription: Subscription) {
         subscription.dispose();
         const indexOfSubscription = this.subscriptions.indexOf(subscription);
         if (indexOfSubscription >= 0) {
@@ -864,8 +961,13 @@ class Streaming {
      * @param {function} [options.onNetworkError] - A callback function that is invoked on network error.
      * @returns {saxo.openapi.StreamingSubscription} A subscription object.
      */
-    createSubscription(servicePath, url, subscriptionArgs, options) {
-        const normalizedSubscriptionArgs = extend({}, subscriptionArgs);
+    createSubscription(
+        servicePath: string,
+        url: string,
+        subscriptionArgs?: SubscriptionArgs,
+        options?: StreamingOptions,
+    ) {
+        const normalizedSubscriptionArgs = { ...subscriptionArgs };
 
         if (
             !ParserFacade.isFormatSupported(normalizedSubscriptionArgs.Format)
@@ -880,7 +982,7 @@ class Streaming {
         };
 
         const subscription = new Subscription(
-            this.contextId,
+            this.contextId as string, // assuming contextId exists at this stage
             this.transport,
             servicePath,
             url,
@@ -905,7 +1007,7 @@ class Streaming {
      *
      * @param {saxo.openapi.StreamingSubscription} subscription - The subscription to start.
      */
-    subscribe(subscription) {
+    subscribe(subscription: Subscription) {
         subscription.onSubscribe();
     }
 
@@ -917,7 +1019,11 @@ class Streaming {
      * @param {Object} args - The target arguments of modified subscription.
      * @param {Object} options - Options for subscription modification.
      */
-    modify(subscription, args, options) {
+    modify(
+        subscription: Subscription,
+        args: Record<string, unknown>,
+        options: { isPatch: boolean; patchArgsDelta: Record<string, unknown> },
+    ) {
         subscription.onModify(args, options);
     }
 
@@ -926,7 +1032,7 @@ class Streaming {
      *
      * @param {saxo.openapi.StreamingSubscription} subscription - The subscription to stop.
      */
-    unsubscribe(subscription) {
+    unsubscribe(subscription: Subscription) {
         subscription.onUnsubscribe();
     }
 
@@ -935,7 +1041,7 @@ class Streaming {
      *
      * @param {saxo.openapi.StreamingSubscription} subscription - The subscription to stop and remove.
      */
-    disposeSubscription(subscription) {
+    disposeSubscription(subscription: Subscription) {
         this.unsubscribe(subscription);
         this.removeSubscription(subscription);
     }
@@ -948,7 +1054,7 @@ class Streaming {
      * @param {string} url - the url of the subscriptions to unsubscribe
      * @param {string} tag - the tag of the subscriptions to unsubscribe
      */
-    unsubscribeByTag(servicePath, url, tag) {
+    unsubscribeByTag(servicePath: string, url: string, tag: string) {
         this.unsubscribeSubscriptionByTag(servicePath, url, tag, false);
     }
 
@@ -959,7 +1065,7 @@ class Streaming {
      * @param {string} url - the url of the subscriptions to unsubscribe
      * @param {string} tag - the tag of the subscriptions to unsubscribe
      */
-    disposeSubscriptionByTag(servicePath, url, tag) {
+    disposeSubscriptionByTag(servicePath: string, url: string, tag: string) {
         this.unsubscribeSubscriptionByTag(servicePath, url, tag, true);
     }
 
@@ -1033,50 +1139,7 @@ class Streaming {
         }
     }
 
-    setOptions(options: StreamingConfigurableOptions) {
-        options = options || {};
-
-        const {
-            waitForPageLoad,
-            transportTypes,
-            transport,
-            messageSerializationProtocol,
-            connectRetryDelay,
-            connectRetryDelayLevels,
-            parserEngines,
-            parsers,
-        } = options;
-
-        this.options = {
-            // Faster and does not cause problems after IE8
-            waitForPageLoad,
-            transport: transportTypes || transport,
-            // Message serialization protocol used by signalr core. Its different from protobuf used for each subscription endpoint
-            // Streaming service relays message payload received from publishers as it is, which could be protobuf encoded.
-            // This protocol is used to serialize the message envelope rather than the payload
-            messageSerializationProtocol,
-        };
-
-        if (typeof connectRetryDelay === 'number') {
-            this.retryDelay = connectRetryDelay;
-        } else {
-            this.retryDelay = DEFAULT_STREAMING_OPTIONS.connectRetryDelay;
-        }
-
-        if (typeof connectRetryDelayLevels === 'object') {
-            this.retryDelayLevels = connectRetryDelayLevels;
-        }
-
-        if (parserEngines) {
-            ParserFacade.addEngines(parserEngines);
-        }
-
-        if (parsers) {
-            ParserFacade.addParsers(parsers);
-        }
-    }
-
-    resetStreaming(baseUrl, options = {}) {
+    resetStreaming(baseUrl: string, options = {}) {
         this.baseUrl = baseUrl;
         this.setOptions({ ...this.options, ...options });
 
