@@ -3,7 +3,6 @@ import { extend } from './object';
 describe('utils object', () => {
     describe('extend', () => {
         it('basically functions in shallow mode', () => {
-            expect(extend({}, undefined)).toEqual({});
             expect(extend({}, { banana: true })).toEqual({ banana: true });
             expect(extend({ apple: false }, { banana: true })).toEqual({
                 apple: false,
