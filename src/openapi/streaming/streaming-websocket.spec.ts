@@ -19,6 +19,8 @@ import * as constants from './connection/constants';
 import mockAuthProvider from '../../test/mocks/authProvider';
 import Subscription from './subscription';
 
+jest.mock('./connection/connection');
+
 type ConnectionState = keyof typeof constants.READABLE_CONNECTION_STATE_MAP;
 
 const defaultOptions: Partial<StreamingConfigurableOptions> = {

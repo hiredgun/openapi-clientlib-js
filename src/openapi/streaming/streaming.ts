@@ -8,11 +8,10 @@ import StreamingOrphanFinder from './orphan-finder';
 import Connection from './connection/connection';
 import * as connectionConstants from './connection/constants';
 import * as streamingTransports from './connection/transportTypes';
+import type { TransportTypes, ConnectionOptions } from './connection/types';
 import type AuthProvider from '../authProvider';
 import type ParserBase from './parser/parser-base';
 import type { IHubProtocol } from '@microsoft/signalr';
-
-export type TransportTypes = typeof streamingTransports[keyof typeof streamingTransports];
 
 type ConnectionState = keyof typeof connectionConstants.READABLE_CONNECTION_STATE_MAP;
 export interface RetryDelayLevel {
@@ -28,12 +27,6 @@ export interface StreamingConfigurableOptions {
     parserEngines?: Record<string, unknown>;
     transport?: Array<TransportTypes>;
     messageProtocol?: Record<string, any>;
-    messageSerializationProtocol?: IHubProtocol;
-}
-
-interface InternalOptions {
-    waitForPageLoad: boolean;
-    transport?: Array<TransportTypes>;
     messageSerializationProtocol?: IHubProtocol;
 }
 
@@ -168,7 +161,7 @@ class Streaming {
     orphanFinder: StreamingOrphanFinder;
     // FIXME any
     connection: any;
-    options: InternalOptions = {
+    connectionOptions: ConnectionOptions = {
         waitForPageLoad: false,
         transport: [
             streamingTransports.LEGACY_SIGNALR_WEBSOCKETS,
@@ -237,7 +230,7 @@ class Streaming {
             parsers,
         } = options;
 
-        this.options = {
+        this.connectionOptions = {
             // Faster and does not cause problems after IE8
             waitForPageLoad,
             transport: transportTypes || transport,
@@ -276,9 +269,8 @@ class Streaming {
             this.connection.dispose();
         }
 
-        // @ts-expect-error FIXME remove once Connection is migrated
         this.connection = new Connection(
-            this.options,
+            this.connectionOptions,
             this.baseUrl,
             this.onStreamingFailed.bind(this),
         );
@@ -1141,7 +1133,7 @@ class Streaming {
 
     resetStreaming(baseUrl: string, options = {}) {
         this.baseUrl = baseUrl;
-        this.setOptions({ ...this.options, ...options });
+        this.setOptions({ ...this.connectionOptions, ...options });
 
         this.isReset = true;
 
