@@ -3,12 +3,13 @@
  * @ignore
  */
 
-import type { APIResponse, Methods } from './types';
+import type { APIResponse, MethodInputArgs, Methods } from './types';
 import type TransportCore from './core';
+import TransportBase from './trasportBase';
 
 interface TransportCall {
     method: Methods;
-    args: [string];
+    args: MethodInputArgs;
     resolve: (value?: any) => void;
     reject: (value?: any) => void;
     retryCount: number;
@@ -43,10 +44,10 @@ interface TransportCall {
  * });
  */
 
-class TransportRetry {
+class TransportRetry extends TransportBase {
     retryTimeout = 0;
     methods: Record<string, any>;
-    transport: any;
+    transport: TransportCore;
     failedCalls: TransportCall[] = [];
     individualFailedCalls: TransportCall[] = [];
     retryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -59,6 +60,7 @@ class TransportRetry {
             methods?: Record<string, any>;
         },
     ) {
+        super();
         if (!transport) {
             throw new Error(
                 'Missing required parameter: transport in TransportRetry',
@@ -72,8 +74,8 @@ class TransportRetry {
         this.transport = transport;
     }
 
-    private transportMethod(method: Methods) {
-        return (...args: any) => {
+    prepareFunction(method: Methods) {
+        return (...args: MethodInputArgs) => {
             // checking if http method call should be handled by RetryTransport
             if (
                 this.methods[method] &&
@@ -98,16 +100,8 @@ class TransportRetry {
         };
     }
 
-    get = this.transportMethod('get');
-    post = this.transportMethod('post');
-    put = this.transportMethod('put');
-    delete = this.transportMethod('delete');
-    patch = this.transportMethod('patch');
-    head = this.transportMethod('head');
-    options = this.transportMethod('options');
-
     protected sendTransportCall = (transportCall: TransportCall) => {
-        this.transport[transportCall.method](transportCall.args).then(
+        this.transport[transportCall.method](...transportCall.args).then(
             transportCall.resolve,
             (response: APIResponse) => {
                 const callOptions = this.methods[transportCall.method];

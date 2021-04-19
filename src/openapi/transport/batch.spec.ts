@@ -232,7 +232,7 @@ describe('openapi TransportBatch', () => {
                     '',
                 ),
                 cache: false,
-                requestId: 1,
+                requestId: '1',
             },
         ]);
 
@@ -322,7 +322,7 @@ describe('openapi TransportBatch', () => {
                     '',
                 ),
                 cache: false,
-                requestId: 1,
+                requestId: '1',
             },
         ]);
     });
@@ -379,7 +379,7 @@ describe('openapi TransportBatch', () => {
                     '',
                 ),
                 cache: false,
-                requestId: 1,
+                requestId: '1',
             },
         ]);
 
@@ -442,7 +442,7 @@ describe('openapi TransportBatch', () => {
                     '',
                 ),
                 cache: false,
-                requestId: 1,
+                requestId: '1',
             },
         ]);
 
@@ -502,7 +502,7 @@ describe('openapi TransportBatch', () => {
                     '',
                 ),
                 cache: false,
-                requestId: 1,
+                requestId: '1',
             },
         ]);
 
@@ -1132,7 +1132,7 @@ describe('openapi TransportBatch', () => {
                     '',
                 ),
                 cache: false,
-                requestId: 1,
+                requestId: '1',
             },
         ]);
     });
@@ -1184,7 +1184,7 @@ describe('openapi TransportBatch', () => {
                     '',
                 ),
                 cache: false,
-                requestId: 1,
+                requestId: '1',
             },
         ]);
     });

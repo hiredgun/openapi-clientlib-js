@@ -1,4 +1,5 @@
 ﻿import log from '../log';
+import type { Methods } from '../openapi/transport/types';
 
 export type HttpMethod =
     | 'GET'
@@ -200,12 +201,12 @@ export function convertFetchSuccess(
 }
 
 function getBody(
-    method: HttpMethod,
+    method: Methods,
     options?: Options,
 ): BodyInit | Record<string, unknown> | undefined {
     // If PATCH without body occurs, create empty payload.
     // Reason: Some proxies and default configs for CDNs like Akamai have issues with accepting PATCH with content-length: 0.
-    if (method === 'PATCH' && !options?.body) {
+    if (method === 'patch' && !options?.body) {
         return {};
     }
 
@@ -231,7 +232,7 @@ function getBody(
  *                             "same-origin" will include the cookies if on the same domain (this is the XmlHttpRequest default)
  *                             "include" will always include the cookies.
  */
-function localFetch(method: HttpMethod, url: string, options?: Options) {
+function localFetch(method: Methods, url: string, options?: Options) {
     let body = getBody(method, options);
     const headers = options?.headers || {};
     const cache = options?.cache;
@@ -246,14 +247,14 @@ function localFetch(method: HttpMethod, url: string, options?: Options) {
 
     if (
         useXHttpMethodOverride &&
-        (method === 'PUT' || method === 'DELETE' || method === 'PATCH')
+        (method === 'put' || method === 'delete' || method === 'patch')
     ) {
         headers['X-HTTP-Method-Override'] = method;
-        method = 'POST';
+        method = 'post';
     }
 
     if (cache === false) {
-        if (method === 'GET') {
+        if (method === 'get') {
             const cacheBreak = String(cacheBreakNum++);
             url += (url.indexOf('?') > 0 ? '&_=' : '?_=') + cacheBreak;
         }

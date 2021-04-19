@@ -23,12 +23,15 @@ const LOG_AREA = 'TransportBatch';
 // -- Local methods section --
 
 type BatchResult = {
-    response: string;
-    headers?: {
+    response?: string;
+    status: number;
+    headers: {
         get: (key: string) => string;
     };
+    size: number;
+    url: string;
+    responseType?: string;
     isNetworkError?: boolean;
-    status?: number;
 };
 
 function getParentRequestId(batchResult: BatchResult) {
@@ -129,7 +132,7 @@ class TransportBatch extends TransportQueue {
         // Request id for container request that contains all child batched requests.
         // It's required to request it before all child requests are built to preserve correct x-request-id order.
         // Correct x-request-id order is important when parsing batch response.
-        const parentRequestId = getRequestId();
+        const parentRequestId = getRequestId().toString();
 
         const subRequests = [];
         let subRequestHasExtendedAssetTypeHeader = false;
@@ -178,8 +181,8 @@ class TransportBatch extends TransportQueue {
                 cache: false,
                 requestId: parentRequestId,
             })
-            .then((batchResult: BatchResult) =>
-                this.batchCallSuccess(callList, batchResult),
+            .then((batchResult: BatchResult | undefined | unknown) =>
+                this.batchCallSuccess(callList, batchResult as BatchResult),
             )
             .catch((errorResponse: BatchResult) =>
                 this.batchCallFailure(callList, errorResponse),

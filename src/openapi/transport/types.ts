@@ -35,3 +35,6 @@ export interface TransportCoreOptions {
     cache?: boolean;
     requestId?: string;
 }
+
+// eslint-disable-next-line max-len
+export type MethodInputArgs = [string | undefined, string | undefined, Record<string, string | number> | null | undefined, TransportCoreOptions | undefined];

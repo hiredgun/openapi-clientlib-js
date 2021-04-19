@@ -5,9 +5,8 @@
 
 import type AuthProvider from '../authProvider';
 import type * as types from './types';
-import type TransportCore from './core';
-import type TransportAuth from './auth';
-import type TransportBatch from './batch';
+import type { ITransport } from './trasportBase';
+import TransportBase from './trasportBase';
 
 // -- Exported methods section --
 
@@ -26,38 +25,26 @@ import type TransportBatch from './batch';
  *      If not given then calls will continue even when the authentication is not expired and no 401 calls will be handled.
  */
 
-export type TransporterArgs = [
-    string?,
-    string?,
-    Record<string, string | number>?,
-    types.TransportCoreOptions?,
-];
-
 export type QueueItem = {
     method: types.Methods;
-    args: TransporterArgs;
+    args: types.MethodInputArgs;
     servicePath: string;
     urlTemplate: string;
-    urlArgs?: Record<string, string | number>;
+    urlArgs?: Record<string, string | number> | null;
     options?: types.TransportCoreOptions;
     resolve: (...value: any[]) => void;
     reject: (reason?: any, ...rest: any[]) => void;
 };
 
-class TransportQueue {
+class TransportQueue extends TransportBase {
     isQueueing = false;
     authProvider: AuthProvider | null = null;
     queue: QueueItem[] = [];
-    transport: any;
+    transport: ITransport;
     waitForPromises: Promise<any>[] = [];
-    constructor(
-        transport:
-            | TransportAuth
-            | TransportQueue
-            | TransportBatch
-            | TransportCore,
-        authProvider?: AuthProvider,
-    ) {
+
+    constructor(transport: ITransport, authProvider?: AuthProvider) {
+        super();
         if (!transport) {
             throw new Error(
                 'Missing required parameter: transport in TransportQueue',
@@ -91,15 +78,8 @@ class TransportQueue {
         }
     }
 
-    private transportMethod = (method: types.Methods) => {
-        return (
-            ...args: [
-                string?,
-                string?,
-                Record<string, string | number>?,
-                types.TransportCoreOptions?,
-            ]
-        ) => {
+    prepareFunction(method: types.Methods) {
+        return (...args: types.MethodInputArgs) => {
             if (!this.isQueueing) {
                 // checking expiry every time so that if device goes to sleep and is woken then
                 // we intercept a call about to be made and then do not have to cope with the 401 responses
@@ -133,7 +113,7 @@ class TransportQueue {
                 }
             });
         };
-    };
+    }
 
     private onWaitForPromiseResolved(promise: Promise<any>) {
         this.waitForPromises.splice(this.waitForPromises.indexOf(promise), 1);
@@ -144,14 +124,6 @@ class TransportQueue {
     private authTokenReceived = () => {
         this.tryEmptyQueue();
     };
-
-    get = this.transportMethod('get');
-    post = this.transportMethod('post');
-    put = this.transportMethod('put');
-    delete = this.transportMethod('delete');
-    patch = this.transportMethod('patch');
-    head = this.transportMethod('head');
-    options = this.transportMethod('options');
 
     waitFor(promise: Promise<any>) {
         this.waitForPromises.push(promise);
@@ -171,6 +143,7 @@ class TransportQueue {
             (...args: any[]) => {
                 item.resolve(...args);
             },
+            // @ts-expect-error as it should return promise but returning direct void
             (result: { status: types.APIStatusCode }, ...args: [any]) => {
                 if (this.authProvider && result && result.status === 401) {
                     this.addToQueue(item);

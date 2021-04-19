@@ -7,12 +7,8 @@ import { formatUrl } from '../../utils/string';
 import fetch from '../../utils/fetch';
 import { getRequestId } from '../../utils/request';
 import { shouldUseCloud } from './options';
-import type {
-    HTTPMethods,
-    Options,
-    TransportCoreOptions,
-    Services,
-} from './types';
+import type { Options, TransportCoreOptions, Services, Methods } from './types';
+import TransportBase from './trasportBase';
 
 /**
  * Options pertaining to a specific service path.
@@ -33,7 +29,7 @@ import type {
  * @param {Object.<string, saxo.ServiceOptions>} [options.services] - Per-service options, keyed by service path.
  */
 
-class TransportCore {
+class TransportCore extends TransportBase {
     baseUrl: string;
     language?: string;
     services: Services = {};
@@ -41,6 +37,7 @@ class TransportCore {
     useXHttpMethodOverride = false;
 
     constructor(baseUrl?: string | null, options?: Options) {
+        super();
         if (!baseUrl) {
             throw new Error('Missing required parameter: baseUrl');
         }
@@ -53,7 +50,7 @@ class TransportCore {
         this.services = options?.services || {};
     }
 
-    private generateTransportCall(method: HTTPMethods) {
+    prepareFunction(method: Methods) {
         return (
             servicePath?: string,
             urlTemplate?: string,
@@ -164,7 +161,6 @@ class TransportCore {
      *         }
      * });
      */
-    get = this.generateTransportCall('GET');
 
     /**
      * Does a put request against open api.
@@ -218,7 +214,6 @@ class TransportCore {
      *         }
      * });
      */
-    put = this.generateTransportCall('PUT');
 
     /**
      * Does a delete request against open api.
@@ -270,7 +265,6 @@ class TransportCore {
      *         }
      * });
      */
-    delete = this.generateTransportCall('DELETE');
 
     /**
      * Does a post request against open api.
@@ -324,7 +318,6 @@ class TransportCore {
      *         }
      * });
      */
-    post = this.generateTransportCall('POST');
 
     /**
      * Does a patch request against open api.
@@ -378,7 +371,6 @@ class TransportCore {
      *         }
      * });
      */
-    patch = this.generateTransportCall('PATCH');
 
     /**
      * Does a head request against open api.
@@ -431,7 +423,6 @@ class TransportCore {
      *         }
      * });
      */
-    head = this.generateTransportCall('HEAD');
 
     /**
      * Does an options request against open api.
@@ -484,7 +475,6 @@ class TransportCore {
      *         }
      * });
      */
-    options = this.generateTransportCall('OPTIONS');
 
     /**
      * Sets whether to replace put/patch/delete calls with a post that has
@@ -497,9 +487,7 @@ class TransportCore {
 
     fetch = fetch;
 
-    dispose() {
-        // here for consistency of api
-    }
+    dispose() {}
 }
 
 // -- Export section --

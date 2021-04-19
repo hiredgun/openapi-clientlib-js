@@ -8,6 +8,7 @@
 import log from '../../log';
 import type AuthProvider from '../authProvider';
 import TransportCore from './core';
+import TransportBase from './trasportBase';
 import type * as types from './types';
 
 const LOG_AREA = 'TransportAuth';
@@ -32,7 +33,7 @@ const DEFAULT_AUTH_ERRORS_DEBOUNCE_PERIOD = 30000; // ms
  * @param {number} [options.authErrorsDebouncePeriod] - The period within which errors on different tokens cause an endpoint auth errors
  *                                                      to be ignored.
  */
-class TransportAuth {
+class TransportAuth extends TransportBase {
     authErrorsDebouncePeriod = DEFAULT_AUTH_ERRORS_DEBOUNCE_PERIOD;
     authorizationErrors: Record<
         string,
@@ -42,11 +43,13 @@ class TransportAuth {
     // needs to map with transport core interface
     transport: TransportCore;
     authProvider: AuthProvider;
+
     constructor(
         baseUrl: string,
         authProvider: AuthProvider,
         options?: types.Options,
     ) {
+        super();
         if (!authProvider) {
             throw new Error('transport auth created without a auth provider');
         }
@@ -96,11 +99,11 @@ class TransportAuth {
         throw result;
     }
 
-    private makeTransportMethod = (method: types.Methods) => {
+    prepareFunction(method: types.Methods) {
         return (
             servicePath?: string,
             urlTemplate?: string,
-            templateArgs?: Record<string, string | number>,
+            templateArgs?: Record<string, string | number> | null,
             options?: types.TransportCoreOptions,
         ) => {
             const newOptions = {
@@ -126,15 +129,7 @@ class TransportAuth {
                 ),
             );
         };
-    };
-
-    get = this.makeTransportMethod('get');
-    put = this.makeTransportMethod('put');
-    post = this.makeTransportMethod('post');
-    delete = this.makeTransportMethod('delete');
-    patch = this.makeTransportMethod('patch');
-    head = this.makeTransportMethod('head');
-    options = this.makeTransportMethod('options');
+    }
 
     // Cleanup of error counter map
     cleanupAuthErrors() {
