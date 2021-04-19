@@ -10,7 +10,7 @@ import mockAuthProvider from '../../test/mocks/authProvider';
 import TransportAuth from './auth';
 
 describe('openapi TransportAuth', () => {
-    const noop = () => { };
+    const noop = () => {};
     let transportAuth: TransportAuth;
     let fetch: any;
     let authProvider: any;
@@ -24,7 +24,7 @@ describe('openapi TransportAuth', () => {
         uninstallClock();
         if (transportAuth) {
             transportAuth.dispose();
-            // @ts-expect-error this can not be null, just being used to flush out 
+            // @ts-expect-error this can not be null, just being used to flush out
             transportAuth = null;
         }
     });
@@ -200,7 +200,7 @@ describe('openapi TransportAuth', () => {
 
             expect(
                 transportAuth.authorizationErrors[
-                'localhost/openapi/service_path/url'
+                    'localhost/openapi/service_path/url'
                 ],
             ).toBe(undefined);
 
@@ -213,7 +213,7 @@ describe('openapi TransportAuth', () => {
             setTimeout(() => {
                 expect(
                     transportAuth.authorizationErrors[
-                    'localhost/openapi/service_path/url'
+                        'localhost/openapi/service_path/url'
                     ],
                 ).toEqual([expect.any(Object)]);
                 done();
@@ -225,7 +225,7 @@ describe('openapi TransportAuth', () => {
 
             expect(
                 transportAuth.authorizationErrors[
-                'localhost/openapi/service_path/url'
+                    'localhost/openapi/service_path/url'
                 ],
             ).toBe(undefined);
 
@@ -244,7 +244,7 @@ describe('openapi TransportAuth', () => {
                     expect(authProvider.tokenRejected).toHaveBeenCalledTimes(1);
                     expect(
                         transportAuth.authorizationErrors[
-                        'localhost/openapi/service_path/url'
+                            'localhost/openapi/service_path/url'
                         ],
                     ).toEqual([expect.any(Object)]);
                 },
@@ -260,7 +260,7 @@ describe('openapi TransportAuth', () => {
                     expect(authProvider.tokenRejected).toHaveBeenCalledTimes(1);
                     expect(
                         transportAuth.authorizationErrors[
-                        'localhost/openapi/service_path/url'
+                            'localhost/openapi/service_path/url'
                         ],
                     ).toEqual([expect.any(Object), expect.any(Object)]);
                     expect(catchError).toHaveBeenCalledTimes(2);
@@ -300,12 +300,12 @@ describe('openapi TransportAuth', () => {
 
             expect(
                 transportAuth.authorizationErrors[
-                'localhost/openapi/service_path/url'
+                    'localhost/openapi/service_path/url'
                 ],
             ).toBe(undefined);
             expect(
                 transportAuth.authorizationErrors[
-                'localhost/openapi/service_path/url-2'
+                    'localhost/openapi/service_path/url-2'
                 ],
             ).toBe(undefined);
 
@@ -331,7 +331,7 @@ describe('openapi TransportAuth', () => {
                     expect(authProvider.tokenRejected).toHaveBeenCalledTimes(1);
                     expect(
                         transportAuth.authorizationErrors[
-                        'localhost/openapi/service_path/url'
+                            'localhost/openapi/service_path/url'
                         ],
                     ).toEqual([expect.any(Object), expect.any(Object)]);
                 },
@@ -348,7 +348,7 @@ describe('openapi TransportAuth', () => {
                     expect(authProvider.tokenRejected).toHaveBeenCalledTimes(2);
                     expect(
                         transportAuth.authorizationErrors[
-                        'localhost/openapi/service_path/url-2'
+                            'localhost/openapi/service_path/url-2'
                         ],
                     ).toEqual([expect.any(Object)]);
 
@@ -362,12 +362,12 @@ describe('openapi TransportAuth', () => {
 
             expect(
                 transportAuth.authorizationErrors[
-                'localhost/openapi/service_path/url'
+                    'localhost/openapi/service_path/url'
                 ],
             ).toBe(undefined);
             expect(
                 transportAuth.authorizationErrors[
-                'localhost/openapi/service_path/url-2'
+                    'localhost/openapi/service_path/url-2'
                 ],
             ).toBe(undefined);
 
@@ -392,7 +392,7 @@ describe('openapi TransportAuth', () => {
                     expect(authProvider.tokenRejected).toHaveBeenCalledTimes(1);
                     expect(
                         transportAuth.authorizationErrors[
-                        'localhost/openapi/service_path/url'
+                            'localhost/openapi/service_path/url'
                         ],
                     ).toEqual(expect.any(Array));
 
@@ -400,7 +400,7 @@ describe('openapi TransportAuth', () => {
 
                     expect(
                         transportAuth.authorizationErrors[
-                        'localhost/openapi/service_path/url'
+                            'localhost/openapi/service_path/url'
                         ],
                     ).toBe(undefined);
 
@@ -414,12 +414,12 @@ describe('openapi TransportAuth', () => {
 
             expect(
                 transportAuth.authorizationErrors[
-                'localhost/openapi/service_path/url'
+                    'localhost/openapi/service_path/url'
                 ],
             ).toBe(undefined);
             expect(
                 transportAuth.authorizationErrors[
-                'localhost/openapi/service_path/url-2'
+                    'localhost/openapi/service_path/url-2'
                 ],
             ).toBe(undefined);
 
@@ -457,7 +457,10 @@ describe('openapi TransportAuth', () => {
 
             transportAuth.authorizationErrors = {
                 'new-url': [{ authExpiry: 1, added: 0 }],
-                'new-url-2': [{ authExpiry: 1, added: 0 }, { authExpiry: 2, added: 0 }],
+                'new-url-2': [
+                    { authExpiry: 1, added: 0 },
+                    { authExpiry: 2, added: 0 },
+                ],
             };
 
             expect(
@@ -476,7 +479,10 @@ describe('openapi TransportAuth', () => {
 
             transportAuth.authorizationErrors = {
                 'new-url': [{ authExpiry: 1, added: 0 }],
-                'new-url-2': [{ authExpiry: 1, added: 0 }, { authExpiry: 2, added: 0 }],
+                'new-url-2': [
+                    { authExpiry: 1, added: 0 },
+                    { authExpiry: 2, added: 0 },
+                ],
             };
 
             expect(
