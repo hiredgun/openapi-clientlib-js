@@ -5,3 +5,12 @@ export const SIGNALR_CORE_LONG_POLLING = 'signalrCore-longpolling';
 export const LEGACY_SIGNALR = 'signalr';
 export const LEGACY_SIGNALR_WEBSOCKETS = 'webSockets';
 export const LEGACY_SIGNALR_LONG_POLLING = 'longPolling';
+
+export type TransportTypes =
+    | 'plainWebSockets'
+    | 'signalrCore'
+    | 'signalrCore-websockets'
+    | 'signalrCore-longpolling'
+    | 'signalr'
+    | 'webSockets'
+    | 'longPolling';

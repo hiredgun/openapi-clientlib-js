@@ -3,12 +3,11 @@ import * as transportTypes from '../transportTypes';
 import * as constants from './../constants';
 
 const LOG_AREA = 'SignalRTransport';
-const NOOP = () => { };
+const NOOP = () => {};
 
 declare const $: any;
 
-type Callback = (...args: any) => any
-
+type Callback = (...args: any) => any;
 
 /**
  * SignalR Transport which supports both webSocket and longPolling with internal fallback mechanism.
@@ -20,7 +19,7 @@ class SignalrTransport {
     unauthorizedCallback = NOOP;
     baseUrl: string;
     connectionUrl: string;
-    connection: any
+    connection: any;
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
@@ -37,8 +36,11 @@ class SignalrTransport {
      * @param message
      */
     private handleLog = (message: string) => {
-        log.debug(LOG_AREA, message.replace(/BEARER[^&]+/i, '[Redacted Token]'));
-    }
+        log.debug(
+            LOG_AREA,
+            message.replace(/BEARER[^&]+/i, '[Redacted Token]'),
+        );
+    };
 
     /**
      * Handles a signal-r error
@@ -47,12 +49,10 @@ class SignalrTransport {
      */
     private handleError = (errorDetail?: { source?: { status: number } }) => {
         log.warn(LOG_AREA, 'Transport error', errorDetail);
-        if (
-            errorDetail?.source?.status === 401
-        ) {
+        if (errorDetail?.source?.status === 401) {
             this.unauthorizedCallback();
         }
-    }
+    };
 
     /**
      * Maps from the signalR connection state to the ConnectionState Enum
@@ -78,7 +78,7 @@ class SignalrTransport {
         }
 
         return null;
-    }
+    };
 
     private handleStateChanged = (payload: { newState: string }) => {
         if (typeof this.stateChangedCallback === 'function') {
@@ -86,7 +86,7 @@ class SignalrTransport {
                 this.mapConnectionState(payload.newState),
             );
         }
-    }
+    };
 
     isSupported() {
         return true;
@@ -116,7 +116,6 @@ class SignalrTransport {
         this.connection.stop();
     }
 
-
     updateQuery(authToken: string, contextId: number) {
         this.connection.qs = `authorization=${encodeURIComponent(
             authToken,
@@ -130,7 +129,6 @@ class SignalrTransport {
     getTransport() {
         return this.connection.transport;
     }
-
 }
 
 export default SignalrTransport;

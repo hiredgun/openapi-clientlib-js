@@ -8,7 +8,7 @@ const CONTEXT_ID = '0000000000';
 const AUTH_TOKEN = 'TOKEN';
 const BASE_URL = 'testUrl';
 
-type Callback = (...args: any) => any
+type Callback = (...args: any) => any;
 
 describe('openapi SignalR Transport', () => {
     let stateChangedCallback: Callback;
@@ -30,18 +30,22 @@ describe('openapi SignalR Transport', () => {
         mockConnection.stateChanged.mockImplementation((callback: Callback) => {
             stateChangedCallback = callback;
         });
-        mockConnection.start.mockImplementation((_options: any, callback: Callback) => {
-            startCallback = callback;
-        });
+        mockConnection.start.mockImplementation(
+            (_options: any, callback: Callback) => {
+                startCallback = callback;
+            },
+        );
         mockConnection.received.mockImplementation((callback: Callback) => {
             receivedCallback = callback;
         });
         mockConnection.error.mockImplementation((callback: Callback) => {
             errorCallback = callback;
         });
-        mockConnection.connectionSlow.mockImplementation((callback: Callback) => {
-            connectionSlowCallback = callback;
-        });
+        mockConnection.connectionSlow.mockImplementation(
+            (callback: Callback) => {
+                connectionSlowCallback = callback;
+            },
+        );
 
         global.$ = {
             connection: jest.fn().mockReturnValue(mockConnection),

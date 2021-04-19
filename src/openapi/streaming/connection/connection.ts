@@ -4,8 +4,7 @@ import WebsocketTransport from './transport/websocket-transport';
 import SignalrTransport from './transport/signalr-transport';
 import SignalrCoreTransport from './transport/signalr-core-transport';
 
-
-type Callback = (...args?: any) => any | void
+type Callback = (...args: any) => any | void;
 
 const LOG_AREA = 'Connection';
 const DEFAULT_TRANSPORTS = [
@@ -44,13 +43,12 @@ const TRANSPORT_NAME_MAP: any = {
     },
 };
 
-const NOOP = () => { };
+const NOOP = () => {};
 
 const STATE_CREATED = 'connection-state-created';
 const STATE_STARTED = 'connection-state-started';
 const STATE_STOPPED = 'connection-state-stopped';
 const STATE_DISPOSED = 'connection-state-disposed';
-
 
 /**
  * Connection facade for multiple supported streaming approaches:
@@ -59,9 +57,9 @@ const STATE_DISPOSED = 'connection-state-disposed';
  */
 
 class Connection {
-    baseUrl: string
-    failCallback: Callback
-    startCallback = NOOP
+    baseUrl: string;
+    failCallback: Callback;
+    startCallback = NOOP;
     stateChangedCallback = NOOP;
     receiveCallback = NOOP;
     connectionSlowCallback = NOOP;
@@ -69,26 +67,21 @@ class Connection {
     authExpiry: number | null = null;
     contextId: number | null = null;
     options: any;
-    transports: any
+    transports: any;
     state = STATE_CREATED;
     tranportIndex: number | null = null;
-    transport: any
-    unauthorizedCallback: any
-
+    transport: any;
+    unauthorizedCallback: any;
 
     constructor(options: any, baseUrl: string, failCallback = NOOP) {
         // Callbacks
         this.failCallback = failCallback;
 
-
         // Parameters
         this.baseUrl = baseUrl;
         this.options = options;
 
-        this.transports = this.getSupportedTransports(
-            this.options?.transport,
-        );
-
+        this.transports = this.getSupportedTransports(this.options?.transport);
 
         // Index of currently used transport. Index corresponds to position in this.transports.
         this.transport = this.createTransport(this.baseUrl);
@@ -109,7 +102,6 @@ class Connection {
         }
     }
 
-
     private getLogDetails = () => {
         return {
             url: this.baseUrl,
@@ -117,7 +109,7 @@ class Connection {
             contextId: this.contextId,
             enabledTransports: this.options && this.options.transport,
         };
-    }
+    };
 
     private getSupportedTransports = (requestedTrasnports: string[]) => {
         let transportNames = requestedTrasnports;
@@ -136,7 +128,7 @@ class Connection {
         }
 
         return supported;
-    }
+    };
 
     private onTransportFail = (error: any) => {
         log.info(LOG_AREA, 'Transport failed', {
@@ -178,8 +170,7 @@ class Connection {
             };
             this.transport.start(transportOptions, this.startCallback);
         }
-    }
-
+    };
 
     private createTransport = (baseUrl: string) => {
         if (this.tranportIndex === null || this.tranportIndex === undefined) {
@@ -202,9 +193,13 @@ class Connection {
         }
 
         return new SelectedTransport(baseUrl, this.onTransportFail);
-    }
+    };
 
-    private ensureValidState = (callback: (...arg: any) => any, callbackType: string, ...args: any) => {
+    private ensureValidState = (
+        callback: (...arg: any) => any,
+        callbackType: string,
+        ...args: any
+    ) => {
         if (this.state === STATE_DISPOSED) {
             log.warn(LOG_AREA, 'callback called after transport was disposed', {
                 callback: callbackType,
@@ -215,7 +210,7 @@ class Connection {
         }
 
         callback(...args);
-    }
+    };
 
     setUnauthorizedCallback(callback: Callback) {
         if (this.transport) {
@@ -252,7 +247,9 @@ class Connection {
                 callback,
                 'connectionSlowCallback',
             );
-            this.transport.setConnectionSlowCallback(this.connectionSlowCallback);
+            this.transport.setConnectionSlowCallback(
+                this.connectionSlowCallback,
+            );
         }
     }
 
@@ -324,9 +321,9 @@ class Connection {
     }
 
     /**
- * Get underlying transport
- * @returns {*}
- */
+     * Get underlying transport
+     * @returns {*}
+     */
     getTransport() {
         if (!this.transport) {
             return null;
@@ -339,9 +336,6 @@ class Connection {
 
         return this.transport;
     }
-
 }
-
-
 
 export default Connection;
