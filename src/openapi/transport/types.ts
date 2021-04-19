@@ -1,5 +1,4 @@
-export type Methods = 'get' | 'put' | 'post' | 'delete' | 'patch' | 'options' | 'head';
-export type HTTPMethods = 'GET' | 'PUT' | 'POST' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD';
+export type HTTPMethods = 'get' | 'put' | 'post' | 'delete' | 'patch' | 'options' | 'head';
 
 export type APIStatusCode = 401 | 404 | 200 | 201 | 500;
 

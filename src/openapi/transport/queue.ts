@@ -4,7 +4,12 @@
  */
 
 import type AuthProvider from '../authProvider';
-import type * as types from './types';
+import type {
+    HTTPMethods,
+    MethodInputArgs,
+    TransportCoreOptions,
+    APIStatusCode,
+} from './types';
 import type { ITransport } from './trasportBase';
 import TransportBase from './trasportBase';
 
@@ -26,12 +31,12 @@ import TransportBase from './trasportBase';
  */
 
 export type QueueItem = {
-    method: types.Methods;
-    args: types.MethodInputArgs;
+    method: HTTPMethods;
+    args: MethodInputArgs;
     servicePath: string;
     urlTemplate: string;
     urlArgs?: Record<string, string | number> | null;
-    options?: types.TransportCoreOptions;
+    options?: TransportCoreOptions;
     resolve: (...value: any[]) => void;
     reject: (reason?: any, ...rest: any[]) => void;
 };
@@ -78,8 +83,8 @@ class TransportQueue extends TransportBase {
         }
     }
 
-    prepareFunction(method: types.Methods) {
-        return (...args: types.MethodInputArgs) => {
+    prepareTransportMethod(method: HTTPMethods) {
+        return (...args: MethodInputArgs) => {
             if (!this.isQueueing) {
                 // checking expiry every time so that if device goes to sleep and is woken then
                 // we intercept a call about to be made and then do not have to cope with the 401 responses
@@ -144,7 +149,7 @@ class TransportQueue extends TransportBase {
                 item.resolve(...args);
             },
             // @ts-expect-error as it should return promise but returning direct void
-            (result: { status: types.APIStatusCode }, ...args: [any]) => {
+            (result: { status: APIStatusCode }, ...args: [any]) => {
                 if (this.authProvider && result && result.status === 401) {
                     this.addToQueue(item);
                     // if we are fetching a new token, wait

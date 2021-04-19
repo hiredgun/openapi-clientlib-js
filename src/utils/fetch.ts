@@ -1,16 +1,5 @@
 ﻿import log from '../log';
-import type { Methods } from '../openapi/transport/types';
-
-export type HttpMethod =
-    | 'GET'
-    | 'HEAD'
-    | 'POST'
-    | 'PUT'
-    | 'DELETE'
-    | 'CONNECT'
-    | 'OPTIONS'
-    | 'TRACE'
-    | 'PATCH';
+import type { HTTPMethods } from '../openapi/transport/types';
 
 interface Options {
     body?: BodyInit | Record<string, unknown>;
@@ -201,7 +190,7 @@ export function convertFetchSuccess(
 }
 
 function getBody(
-    method: Methods,
+    method: HTTPMethods,
     options?: Options,
 ): BodyInit | Record<string, unknown> | undefined {
     // If PATCH without body occurs, create empty payload.
@@ -232,7 +221,7 @@ function getBody(
  *                             "same-origin" will include the cookies if on the same domain (this is the XmlHttpRequest default)
  *                             "include" will always include the cookies.
  */
-function localFetch(method: Methods, url: string, options?: Options) {
+function localFetch(method: HTTPMethods, url: string, options?: Options) {
     let body = getBody(method, options);
     const headers = options?.headers || {};
     const cache = options?.cache;

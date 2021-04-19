@@ -3,12 +3,12 @@
  * @ignore
  */
 
-import type { APIResponse, MethodInputArgs, Methods } from './types';
+import type { APIResponse, MethodInputArgs, HTTPMethods } from './types';
 import type TransportCore from './core';
 import TransportBase from './trasportBase';
 
 interface TransportCall {
-    method: Methods;
+    method: HTTPMethods;
     args: MethodInputArgs;
     resolve: (value?: any) => void;
     reject: (value?: any) => void;
@@ -74,7 +74,7 @@ class TransportRetry extends TransportBase {
         this.transport = transport;
     }
 
-    prepareFunction(method: Methods) {
+    prepareTransportMethod(method: HTTPMethods) {
         return (...args: MethodInputArgs) => {
             // checking if http method call should be handled by RetryTransport
             if (

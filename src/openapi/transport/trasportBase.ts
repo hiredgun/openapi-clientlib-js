@@ -1,4 +1,4 @@
-import type { Methods, TransportCoreOptions } from './types';
+import type { HTTPMethods, TransportCoreOptions } from './types';
 
 type MethodReturn = (
     servicePath?: string,
@@ -22,7 +22,7 @@ type MethodReturn = (
 >;
 
 export interface ITransport {
-    prepareFunction: (arg0: Methods) => MethodReturn;
+    prepareTransportMethod: (arg0: HTTPMethods) => MethodReturn;
     dispose: () => void;
     get: MethodReturn;
     post: MethodReturn;
@@ -36,8 +36,8 @@ export interface ITransport {
 abstract class TransportBase implements ITransport {
     abstract dispose(): void;
 
-    abstract prepareFunction(
-        method: Methods,
+    abstract prepareTransportMethod(
+        method: HTTPMethods,
     ): (
         servicePath?: string,
         urlTemplate?: string,
@@ -59,13 +59,13 @@ abstract class TransportBase implements ITransport {
         | unknown
     >;
 
-    get = this.prepareFunction('get');
-    post = this.prepareFunction('post');
-    put = this.prepareFunction('put');
-    delete = this.prepareFunction('delete');
-    patch = this.prepareFunction('patch');
-    head = this.prepareFunction('head');
-    options = this.prepareFunction('options');
+    get = this.prepareTransportMethod('get');
+    post = this.prepareTransportMethod('post');
+    put = this.prepareTransportMethod('put');
+    delete = this.prepareTransportMethod('delete');
+    patch = this.prepareTransportMethod('patch');
+    head = this.prepareTransportMethod('head');
+    options = this.prepareTransportMethod('options');
 }
 
 export default TransportBase;

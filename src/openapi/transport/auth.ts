@@ -9,7 +9,7 @@ import log from '../../log';
 import type AuthProvider from '../authProvider';
 import TransportCore from './core';
 import TransportBase from './trasportBase';
-import type * as types from './types';
+import type { Options, HTTPMethods, TransportCoreOptions } from './types';
 
 const LOG_AREA = 'TransportAuth';
 
@@ -47,7 +47,7 @@ class TransportAuth extends TransportBase {
     constructor(
         baseUrl: string,
         authProvider: AuthProvider,
-        options?: types.Options,
+        options?: Options,
     ) {
         super();
         if (!authProvider) {
@@ -99,12 +99,12 @@ class TransportAuth extends TransportBase {
         throw result;
     }
 
-    prepareFunction(method: types.Methods) {
+    prepareTransportMethod(method: HTTPMethods) {
         return (
             servicePath?: string,
             urlTemplate?: string,
             templateArgs?: Record<string, string | number> | null,
-            options?: types.TransportCoreOptions,
+            options?: TransportCoreOptions,
         ) => {
             const newOptions = {
                 ...options,

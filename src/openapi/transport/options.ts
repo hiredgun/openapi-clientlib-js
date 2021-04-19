@@ -3,7 +3,7 @@
  * @ignore
  */
 
-import type * as types from './types';
+import type { UseCloud } from './types';
 
 // -- Local variables section --
 
@@ -11,7 +11,7 @@ import type * as types from './types';
 
 // -- Exported methods section --
 
-function shouldUseCloud(serviceOptions?: types.UseCloud) {
+function shouldUseCloud(serviceOptions?: UseCloud) {
     const { useCloud } = serviceOptions || {};
 
     return typeof useCloud === 'function' ? useCloud() : useCloud;

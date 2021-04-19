@@ -14,7 +14,7 @@ import log from '../../log';
 import { shouldUseCloud } from './options';
 import type { QueueItem } from './queue';
 import TransportQueue from './queue';
-import type * as types from './types';
+import type { Services, Options } from './types';
 
 const reUrl = /((https?:)?\/\/)?[^/]+(.*)/i;
 
@@ -63,14 +63,14 @@ class TransportBatch extends TransportQueue {
     basePath = '';
     host: string = location.host;
     timeoutMs = 0;
-    services: types.Services = {};
+    services: Services = {};
     isQueueing = true;
     nextTickTimer: ReturnType<typeof setTimeout> | boolean = false;
 
     constructor(
         transport: any,
         baseUrl?: string | null,
-        options?: types.Options | null,
+        options?: Options | null,
     ) {
         super(transport);
 

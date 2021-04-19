@@ -7,7 +7,12 @@ import { formatUrl } from '../../utils/string';
 import fetch from '../../utils/fetch';
 import { getRequestId } from '../../utils/request';
 import { shouldUseCloud } from './options';
-import type { Options, TransportCoreOptions, Services, Methods } from './types';
+import type {
+    Options,
+    TransportCoreOptions,
+    Services,
+    HTTPMethods,
+} from './types';
 import TransportBase from './trasportBase';
 
 /**
@@ -50,7 +55,7 @@ class TransportCore extends TransportBase {
         this.services = options?.services || {};
     }
 
-    prepareFunction(method: Methods) {
+    prepareTransportMethod(method: HTTPMethods) {
         return (
             servicePath?: string,
             urlTemplate?: string,
@@ -110,6 +115,8 @@ class TransportCore extends TransportBase {
             );
         };
     }
+
+    // fix-me move comment to either base class or better place where they make more sense
 
     /**
      * Does a get request against open api.

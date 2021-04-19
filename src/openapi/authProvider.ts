@@ -9,7 +9,7 @@ import emitter from '../micro-emitter';
 import log from '../log';
 import { startsWith } from '../utils/string';
 import fetch from '../utils/fetch';
-import type { Methods } from './transport/types';
+import type { HTTPMethods } from './transport/types';
 
 const LOG_AREA = 'AuthProvider';
 
@@ -55,7 +55,7 @@ type Options = {
     tokenRefreshUrl?: string;
     tokenRefreshHeaders?: Record<string, string>;
     tokenRefreshCredentials?: RequestCredentials;
-    tokenRefreshMethod?: Methods;
+    tokenRefreshMethod?: HTTPMethods;
     tokenRefreshPropertyNameToken?: string;
     tokenRefreshPropertyNameExpires?: string;
     tokenRefreshMarginMs?: number;
@@ -96,7 +96,7 @@ class AuthProvider {
     tokenRefreshUrl?: string;
     tokenRefreshHeaders?: Record<string, string> = {};
     tokenRefreshCredentials: RequestCredentials = DEFAULT_TOKEN_REFRESH_CREDENTIALS;
-    tokenRefreshMethod: Methods = DEFAULT_TOKEN_REFRESH_METHOD;
+    tokenRefreshMethod: HTTPMethods = DEFAULT_TOKEN_REFRESH_METHOD;
     tokenRefreshPropertyNameToken = DEFAULT_TOKEN_REFRESH_PROPERTY_NAME_TOKEN;
     tokenRefreshPropertyNameExpires = DEFAULT_TOKEN_REFRESH_PROPERTY_NAME_EXPIRES;
     tokenRefreshMarginMs = DEFAULT_TOKEN_REFRESH_MARGIN_MS;

@@ -8,7 +8,7 @@ import type TransportAuth from './auth';
 import type TransportBatch from './batch';
 import TransportQueue from './queue';
 import type TransportCore from './core';
-import type { Methods } from './types';
+import type { HTTPMethods } from './types';
 
 // -- Local variables section --
 
@@ -80,7 +80,7 @@ class TransportPutPatchDiagnositicsQueue {
         );
     }
 
-    private putPatchTransportMethod(method: Methods) {
+    private putPatchTransportMethod(method: HTTPMethods) {
         return (...args: any) => {
             const transport = this.isQueueing
                 ? this.transportQueue
@@ -89,7 +89,7 @@ class TransportPutPatchDiagnositicsQueue {
         };
     }
 
-    private otherMethodTransport(method: Methods) {
+    private otherMethodTransport(method: HTTPMethods) {
         return (...args: any) => this.transport[method](...args);
     }
 
