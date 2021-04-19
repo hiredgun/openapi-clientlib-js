@@ -11,7 +11,7 @@ import {
 } from '../../test/utils';
 import mockTransport from '../../test/mocks/transport';
 import WebSocketTransport from './connection/transport/websocket-transport';
-import Connection from './connection/connection';
+import * as original from './connection/connection';
 import mockMathRandom from '../../test/mocks/math-random';
 import Streaming from './streaming';
 import type { StreamingConfigurableOptions } from './streaming';
@@ -19,7 +19,8 @@ import * as constants from './connection/constants';
 import mockAuthProvider from '../../test/mocks/authProvider';
 import Subscription from './subscription';
 
-jest.mock('./connection/connection');
+const mockedConnection = original as jest.Mocked<typeof original>;
+const Connection = mockedConnection.default;
 
 type ConnectionState = keyof typeof constants.READABLE_CONNECTION_STATE_MAP;
 
