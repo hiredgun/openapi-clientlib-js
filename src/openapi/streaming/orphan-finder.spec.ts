@@ -1,6 +1,6 @@
 ﻿import { installClock, uninstallClock, tick } from '../../test/utils';
 import StreamingOrphanFinder from './orphan-finder';
-import Subscription from './subscription';
+import type Subscription from './subscription';
 
 describe('openapi StreamingOrphanFinder', () => {
     let streamingOrphanFinder: StreamingOrphanFinder;

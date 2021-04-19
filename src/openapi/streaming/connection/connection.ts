@@ -290,7 +290,12 @@ class Connection {
         this.state = STATE_DISPOSED;
     }
 
-    updateQuery(authToken: string, contextId: number, authExpiry?: number, forceAuth = false) {
+    updateQuery(
+        authToken: string,
+        contextId: number,
+        authExpiry?: number,
+        forceAuth = false,
+    ) {
         this.authToken = authToken;
         this.contextId = contextId;
         this.authExpiry = authExpiry;
