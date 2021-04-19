@@ -14,26 +14,29 @@ import WebSocketTransport from './connection/transport/websocket-transport';
 import Connection from './connection/connection';
 import mockMathRandom from '../../test/mocks/math-random';
 import Streaming from './streaming';
+import type { StreamingConfigurableOptions } from './streaming';
 import * as constants from './connection/constants';
 import mockAuthProvider from '../../test/mocks/authProvider';
+import Subscription from './subscription';
 
-const defaultOptions = {
+type ConnectionState = keyof typeof constants.READABLE_CONNECTION_STATE_MAP;
+
+const defaultOptions: Partial<StreamingConfigurableOptions> = {
     transportTypes: ['plainWebSockets', 'webSockets'],
 };
 
 describe('openapi Streaming', () => {
-    let stateChangedCallback;
-    let connectionSlowCallback;
-    let startCallback;
-    let receivedCallback;
-    let authProvider;
+    let stateChangedCallback: (arg: ConnectionState) => void;
+    let connectionSlowCallback: () => void;
+    let startCallback: () => void;
+    let receivedCallback: (arg: any) => void;
+    let authProvider: any;
     let mockConnection;
-    let subscriptionUpdateSpy;
-    let subscriptionErrorSpy;
-    let transport;
+    // FIXME try to fix once Transport is migrated
+    let transport: any;
 
     beforeEach(() => {
-        WebSocketTransport.isSupported.mockReturnValue(true);
+        (WebSocketTransport.isSupported as jest.Mock).mockReturnValue(true);
         WebSocketTransport.prototype.isSupported =
             WebSocketTransport.isSupported;
 
@@ -49,7 +52,7 @@ describe('openapi Streaming', () => {
         mockConnection.stateChanged.mockImplementation((callback) => {
             stateChangedCallback = callback;
         });
-        mockConnection.start.mockImplementation((options, callback) => {
+        mockConnection.start.mockImplementation((_, callback) => {
             startCallback = callback;
         });
         mockConnection.received.mockImplementation((callback) => {
@@ -59,24 +62,26 @@ describe('openapi Streaming', () => {
             connectionSlowCallback = callback;
         });
 
-        Connection.prototype.start.mockImplementation((callback) => {
-            startCallback = callback;
-        });
+        Connection.prototype.start.mockImplementation(
+            (callback: () => void) => {
+                startCallback = callback;
+            },
+        );
 
         Connection.prototype.setStateChangedCallback.mockImplementation(
-            (callback) => {
+            (callback: () => void) => {
                 stateChangedCallback = callback;
             },
         );
 
         Connection.prototype.setReceivedCallback.mockImplementation(
-            (callback) => {
+            (callback: () => void) => {
                 receivedCallback = callback;
             },
         );
 
         Connection.prototype.setConnectionSlowCallback.mockImplementation(
-            (callback) => {
+            (callback: () => void) => {
                 connectionSlowCallback = callback;
             },
         );
@@ -101,8 +106,7 @@ describe('openapi Streaming', () => {
 
         transport = mockTransport();
         authProvider = mockAuthProvider();
-        subscriptionUpdateSpy = jest.fn().mockName('subscriptionUpdate');
-        subscriptionErrorSpy = jest.fn().mockName('subscriptionError');
+
         installClock();
         mockMathRandom();
     });
@@ -122,12 +126,13 @@ describe('openapi Streaming', () => {
             onUnsubscribe: jest.fn(),
             onModify: jest.fn(),
             dispose: jest.fn(),
+            referenceId: '',
         };
     }
 
     describe('init', () => {
         it('initializes the connection with plain websocket supported', () => {
-            const options = {
+            const options: Partial<StreamingConfigurableOptions> = {
                 transportTypes: ['plainWebSockets', 'webSockets'],
             };
             const streaming = new Streaming(
@@ -147,11 +152,17 @@ describe('openapi Streaming', () => {
     });
 
     describe('connection states', () => {
-        let streaming;
-        let subscription;
-        let stateChangedSpy;
+        let streaming: Streaming;
+        let subscription: Subscription & {
+            onConnectionAvailable: jest.Mock;
+            reset: jest.Mock;
+            onConnectionUnavailable: jest.Mock;
+        };
+        let stateChangedSpy: jest.Mock;
 
-        function givenStreaming(options) {
+        function givenStreaming(
+            options?: Partial<StreamingConfigurableOptions>,
+        ) {
             options = Object.assign({}, options, defaultOptions);
 
             streaming = new Streaming(
@@ -164,9 +175,8 @@ describe('openapi Streaming', () => {
                 'root',
                 '/test/test',
                 {},
-                subscriptionUpdateSpy,
-                subscriptionErrorSpy,
-            );
+            ) as any;
+
             subscription.onConnectionAvailable = jest
                 .fn()
                 .mockName('onConnectionAvailable');
@@ -204,9 +214,7 @@ describe('openapi Streaming', () => {
                 'root',
                 '/test/test',
                 {},
-                subscriptionUpdateSpy,
-                subscriptionErrorSpy,
-            );
+            ) as any;
             // we test the property because we get the subscription after unavailable has been called, and before we spy on the method
             expect(subscription.connectionAvailable).toEqual(true);
         });
@@ -450,10 +458,10 @@ describe('openapi Streaming', () => {
 
             const subscription = mockSubscription();
             subscription.referenceId = 'MySpy';
-            streaming.subscriptions.push(subscription);
+            streaming.subscriptions.push(subscription as any);
             const subscription2 = mockSubscription();
             subscription2.referenceId = 'MySpy2';
-            streaming.subscriptions.push(subscription2);
+            streaming.subscriptions.push(subscription2 as any);
 
             const data1 = { ReferenceId: 'MySpy', Data: 'one' };
             const data2 = { ReferenceId: 'MySpy2', Data: 'two' };
@@ -502,7 +510,7 @@ describe('openapi Streaming', () => {
 
             const subscription = mockSubscription();
             subscription.referenceId = 'MySpy';
-            streaming.subscriptions.push(subscription);
+            streaming.subscriptions.push(subscription as any);
 
             const data1 = {}; // using this to throw an exception, but could be anything
             const data2 = { ReferenceId: 'MySpy', Data: 'one' };
@@ -514,7 +522,7 @@ describe('openapi Streaming', () => {
     });
 
     describe('websocket events', () => {
-        let streaming;
+        let streaming: Streaming;
         beforeEach(() => {
             streaming = new Streaming(
                 transport,
@@ -545,15 +553,13 @@ describe('openapi Streaming', () => {
                 'root',
                 '/test/test',
                 {},
-                subscriptionUpdateSpy,
-                subscriptionErrorSpy,
             );
 
             jest.spyOn(streaming.connection, 'onSubscribeNetworkError');
             jest.spyOn(streaming.connection, 'onOrphanFound');
 
             expect(() => {
-                subscription.onNetworkError();
+                subscription.onNetworkError?.();
             }).not.toThrow();
 
             expect(
@@ -570,7 +576,7 @@ describe('openapi Streaming', () => {
 
     describe('control messages', () => {
         let streaming;
-        let subscription;
+        let subscription: any;
         beforeEach(() => {
             streaming = new Streaming(transport, 'testUrl', authProvider);
             stateChangedCallback(constants.CONNECTION_STATE_CONNECTED);
@@ -646,7 +652,7 @@ describe('openapi Streaming', () => {
             const streaming = new Streaming(transport, 'testUrl', authProvider);
             stateChangedCallback(constants.CONNECTION_STATE_CONNECTED);
 
-            const subscription = mockSubscription();
+            const subscription: any = mockSubscription();
             subscription.referenceId = 'MySpy';
             streaming.subscriptions.push(subscription);
             expect(Connection.prototype.start.mock.calls.length).toEqual(1);
@@ -668,6 +674,7 @@ describe('openapi Streaming', () => {
             expect(transport.delete.mock.calls[0][2]).toEqual({
                 contextId: '0000000000',
             });
+            // @ts-ignore
             expect(streaming.orphanFinder.stop.mock.calls.length).toEqual(1);
 
             stateChangedCallback(constants.CONNECTION_STATE_DISCONNECTED);
@@ -680,10 +687,10 @@ describe('openapi Streaming', () => {
             const streaming = new Streaming(transport, 'testUrl', authProvider);
             stateChangedCallback(constants.CONNECTION_STATE_CONNECTED);
 
-            const subscription = mockSubscription();
+            const subscription = mockSubscription() as any;
             subscription.referenceId = 'MySpy';
             streaming.subscriptions.push(subscription);
-            const subscription2 = mockSubscription();
+            const subscription2 = mockSubscription() as any;
             subscription2.referenceId = 'MySpy';
             streaming.subscriptions.push(subscription2);
 
@@ -719,7 +726,7 @@ describe('openapi Streaming', () => {
             );
             stateChangedCallback(constants.CONNECTION_STATE_CONNECTED);
 
-            const subscription = mockSubscription();
+            const subscription = mockSubscription() as any;
             subscription.referenceId = 'MySpy';
             streaming.subscriptions.push(subscription);
             expect(subscription.reset.mock.calls.length).toEqual(0);
@@ -738,7 +745,7 @@ describe('openapi Streaming', () => {
             );
             stateChangedCallback(constants.CONNECTION_STATE_CONNECTED);
 
-            const subscription = mockSubscription();
+            const subscription = mockSubscription() as any;
             subscription.referenceId = 'MySpy';
             streaming.subscriptions.push(subscription);
             expect(subscription.onSubscribe.mock.calls.length).toEqual(0);
@@ -759,13 +766,12 @@ describe('openapi Streaming', () => {
                 'root',
                 '/test/test',
                 {},
-                subscriptionUpdateSpy,
-                subscriptionErrorSpy,
             );
 
             jest.spyOn(streaming.orphanFinder, 'update');
-            subscription.onSubscriptionCreated();
+            subscription.onSubscriptionCreated?.();
 
+            // @ts-ignore
             expect(streaming.orphanFinder.update.mock.calls.length).toEqual(1);
         });
 
@@ -778,7 +784,7 @@ describe('openapi Streaming', () => {
             );
             stateChangedCallback(constants.CONNECTION_STATE_CONNECTED);
 
-            const subscription = mockSubscription();
+            const subscription = mockSubscription() as any;
             subscription.referenceId = 'MySpy';
             streaming.subscriptions.push(subscription);
             expect(subscription.onUnsubscribe.mock.calls.length).toEqual(0);
@@ -797,12 +803,12 @@ describe('openapi Streaming', () => {
             );
             stateChangedCallback(constants.CONNECTION_STATE_CONNECTED);
 
-            const subscription = mockSubscription();
+            const subscription = mockSubscription() as any;
             subscription.referenceId = 'MySpy';
             streaming.subscriptions.push(subscription);
 
-            const args = 'SubscriptionArgs';
-            const options = { test: 'test options' };
+            const args = {};
+            const options = { isPatch: false, patchArgsDelta: {} };
             streaming.modify(subscription, args, options);
 
             expect(subscription.onModify.mock.calls.length).toEqual(1);
@@ -812,7 +818,7 @@ describe('openapi Streaming', () => {
     });
 
     describe('unsubscribeByTag', () => {
-        let streaming;
+        let streaming: Streaming;
 
         beforeEach(() => {
             streaming = new Streaming(
@@ -834,7 +840,7 @@ describe('openapi Streaming', () => {
                     Tag: 'tag',
                 },
                 addStateChangedCallback: () => {},
-            });
+            } as any);
 
             streaming.unsubscribeByTag('servicePath', 'url', 'tag');
 
@@ -857,7 +863,7 @@ describe('openapi Streaming', () => {
                     Tag: 'tag',
                 },
                 addStateChangedCallback: () => {},
-            });
+            } as any);
 
             streaming.unsubscribeByTag('servicePath', 'url', 'tag2');
             setTimeout(() => {
@@ -879,7 +885,7 @@ describe('openapi Streaming', () => {
                     Tag: 'tag',
                 },
                 addStateChangedCallback: () => {},
-            });
+            } as any);
 
             streaming.unsubscribeByTag('servicePath', 'url', 'tag');
 
@@ -890,7 +896,7 @@ describe('openapi Streaming', () => {
         });
 
         it('does not call to unsubscribe when all subscriptions are not ready', (done) => {
-            let subscriptionStateChangedCallback;
+            let subscriptionStateChangedCallback = () => {};
 
             streaming.subscriptions.push(
                 {
@@ -902,11 +908,11 @@ describe('openapi Streaming', () => {
                     subscriptionData: {
                         Tag: 'tag',
                     },
-                    addStateChangedCallback: (callback) => {
+                    addStateChangedCallback: (callback: () => void) => {
                         subscriptionStateChangedCallback = callback;
                     },
                     isReadyForUnsubscribeByTag: () => true,
-                },
+                } as any,
                 {
                     onUnsubscribeByTagPending: jest
                         .fn()
@@ -918,7 +924,7 @@ describe('openapi Streaming', () => {
                     },
                     addStateChangedCallback: () => {},
                     isReadyForUnsubscribeByTag: () => false,
-                },
+                } as any,
             );
 
             streaming.unsubscribeByTag('servicePath', 'url', 'tag');
@@ -931,7 +937,7 @@ describe('openapi Streaming', () => {
         });
 
         it('calls to unsubscribe when all subscriptions are ready', (done) => {
-            let subscriptionStateChangedCallback;
+            let subscriptionStateChangedCallback = () => {};
 
             streaming.subscriptions.push(
                 {
@@ -943,7 +949,7 @@ describe('openapi Streaming', () => {
                     subscriptionData: {
                         Tag: 'tag',
                     },
-                    addStateChangedCallback: (callback) => {
+                    addStateChangedCallback: (callback: () => void) => {
                         subscriptionStateChangedCallback = callback;
                     },
                     removeStateChangedCallback: () => {},
@@ -951,7 +957,7 @@ describe('openapi Streaming', () => {
                     onUnsubscribeByTagComplete: jest
                         .fn()
                         .mockName('onUnsubscribeByTagComplete'),
-                },
+                } as any,
                 {
                     onUnsubscribeByTagPending: jest
                         .fn()
@@ -967,7 +973,7 @@ describe('openapi Streaming', () => {
                     onUnsubscribeByTagComplete: jest
                         .fn()
                         .mockName('onUnsubscribeByTagComplete'),
-                },
+                } as any,
             );
 
             streaming.unsubscribeByTag('servicePath', 'url', 'tag');
@@ -983,7 +989,7 @@ describe('openapi Streaming', () => {
         });
 
         it('calls onUnsubscribeByTagComplete when unsubscribe is complete', (done) => {
-            let subscriptionStateChangedCallback;
+            let subscriptionStateChangedCallback = () => {};
 
             streaming.subscriptions.push({
                 onUnsubscribeByTagPending: jest
@@ -994,7 +1000,7 @@ describe('openapi Streaming', () => {
                 subscriptionData: {
                     Tag: 'tag',
                 },
-                addStateChangedCallback: (callback) => {
+                addStateChangedCallback: (callback: () => {}) => {
                     subscriptionStateChangedCallback = callback;
                 },
                 removeStateChangedCallback: jest
@@ -1004,7 +1010,7 @@ describe('openapi Streaming', () => {
                 onUnsubscribeByTagComplete: jest
                     .fn()
                     .mockName('onUnsubscribeByTagComplete'),
-            });
+            } as any);
 
             streaming.unsubscribeByTag('servicePath', 'url', 'tag');
             subscriptionStateChangedCallback();
@@ -1022,7 +1028,7 @@ describe('openapi Streaming', () => {
         });
 
         it('removes state change handler when unsubscribe is complete', (done) => {
-            let subscriptionStateChangedCallback;
+            let subscriptionStateChangedCallback = () => {};
 
             streaming.subscriptions.push({
                 onUnsubscribeByTagPending: jest
@@ -1033,7 +1039,7 @@ describe('openapi Streaming', () => {
                 subscriptionData: {
                     Tag: 'tag',
                 },
-                addStateChangedCallback: (callback) => {
+                addStateChangedCallback: (callback: () => void) => {
                     subscriptionStateChangedCallback = callback;
                 },
                 removeStateChangedCallback: jest
@@ -1043,7 +1049,7 @@ describe('openapi Streaming', () => {
                 onUnsubscribeByTagComplete: jest
                     .fn()
                     .mockName('onUnsubscribeByTagComplete'),
-            });
+            } as any);
 
             streaming.unsubscribeByTag('servicePath', 'url', 'tag');
             subscriptionStateChangedCallback();

@@ -814,7 +814,7 @@ class Subscription {
     }
 
     processUpdate(
-        message: { Data?: string; [p: string]: unknown },
+        message: { Data?: unknown; [p: string]: unknown },
         type: SubscriptionUpdateTypes,
     ) {
         let nextMessage;
@@ -941,7 +941,7 @@ class Subscription {
      * @param {Object} newArgs - Updated arguments of modified subscription.
      */
     onModify(
-        newArgs: Record<string, unknown>,
+        newArgs?: Record<string, unknown>,
         options?: { isPatch: boolean; patchArgsDelta: Record<string, unknown> },
     ) {
         if (this.isDisposed) {
@@ -1016,7 +1016,7 @@ class Subscription {
      * @returns {boolean} false if the update is not for this subscription
      */
     onStreamingData(message: {
-        Data?: string;
+        Data?: unknown;
         [p: string]: unknown;
     }): false | void {
         this.onActivity();

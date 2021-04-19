@@ -1,13 +1,14 @@
 ﻿import { installClock, uninstallClock, tick } from '../../test/utils';
 import StreamingOrphanFinder from './orphan-finder';
+import Subscription from './subscription';
 
 describe('openapi StreamingOrphanFinder', () => {
     let streamingOrphanFinder: StreamingOrphanFinder;
     let orphanFoundCallback: jest.Mock;
-    let orphanedSubscription;
-    let notOrphanedSubscription;
-    let orphanIn20Subscription;
-    let orphanIn30Subscription;
+    let orphanedSubscription: any;
+    let notOrphanedSubscription: any;
+    let orphanIn20Subscription: any;
+    let orphanIn30Subscription: any;
     let orphanedSubscriptionTime;
     let notOrphanedSubscriptionTime;
     let transitioningSubscriptionTime;
@@ -51,9 +52,11 @@ describe('openapi StreamingOrphanFinder', () => {
             new StreamingOrphanFinder([], function () {});
         }).not.toThrow();
         expect(function () {
+            // @ts-expect-error checking invalid case
             new StreamingOrphanFinder(null, function () {});
         }).toThrow();
         expect(function () {
+            // @ts-expect-error checking invalid case
             new StreamingOrphanFinder([]);
         }).toThrow();
     });
@@ -71,7 +74,7 @@ describe('openapi StreamingOrphanFinder', () => {
     });
 
     it('resets orphaned subscriptions', () => {
-        const subscriptions = [];
+        const subscriptions: Subscription[] = [];
         streamingOrphanFinder = new StreamingOrphanFinder(
             subscriptions,
             orphanFoundCallback,
