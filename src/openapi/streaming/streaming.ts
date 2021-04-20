@@ -1,4 +1,5 @@
-import emitter from '../../micro-emitter';
+import MicroEmitter from '../../micro-emitter';
+import type { IEventEmitter } from '../../micro-emitter';
 import log from '../../log';
 import { padLeft } from '../../utils/string';
 import Subscription from './subscription';
@@ -174,18 +175,7 @@ class Streaming {
     retryDelayLevels?: RetryDelayLevel[];
     reconnectTimer?: number;
     disposed = false;
-
-    // fix-me need to remove once we have microEmitter implement as class
-    trigger: any;
-
-    // fix-me need to remove once we have microEmitter implement as class
-    on: any;
-
-    // fix-me need to remove once we have microEmitter implement as class
-    one: any;
-
-    // fix-me need to remove once we have microEmitter implement as class
-    off: any;
+    events: IEventEmitter;
 
     constructor(
         // FIXME any
@@ -194,7 +184,7 @@ class Streaming {
         authProvider: AuthProvider,
         options?: Partial<StreamingConfigurableOptions>,
     ) {
-        emitter.mixinTo(this);
+        this.events = new MicroEmitter();
 
         this.baseUrl = baseUrl;
         this.authProvider = authProvider;
@@ -202,7 +192,7 @@ class Streaming {
 
         this.setOptions({ ...DEFAULT_STREAMING_OPTIONS, ...options });
 
-        this.authProvider.on(this.authProvider.EVENT_TOKEN_RECEIVED, () => {
+        this.authProvider.events.on(this.authProvider.EVENT_TOKEN_RECEIVED, () => {
             // Forcing authorization request upon new token arrival.
             const forceAuthorizationRequest = true;
             this.updateConnectionQuery(forceAuthorizationRequest);
@@ -294,7 +284,7 @@ class Streaming {
 
         // Let consumer setup event handlers in case of steaming failure during initial setup
         setTimeout(() => {
-            this.trigger(this.EVENT_STREAMING_FAILED);
+            this.events.trigger(this.EVENT_STREAMING_FAILED);
         });
     }
 
@@ -335,7 +325,7 @@ class Streaming {
             // fetching a new token
             const transport = this.getActiveTransportName();
             this.authProvider.refreshOpenApiToken();
-            this.authProvider.one(
+            this.authProvider.events.one(
                 this.authProvider.EVENT_TOKEN_RECEIVED,
                 () => {
                     // FIXME looks like this block is currently never executed since
@@ -435,7 +425,7 @@ class Streaming {
             },
         );
 
-        this.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
+        this.events.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
 
         if (this.disposed || this.paused) {
             return;
@@ -500,7 +490,7 @@ class Streaming {
 
         log.info(LOG_AREA, 'Connection started');
 
-        this.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
+        this.events.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
     }
 
     // @ts-expect-error FIXME once transports are migrated to TS
@@ -736,7 +726,7 @@ class Streaming {
             this.subscriptions[i].onConnectionUnavailable();
         }
 
-        this.trigger(this.EVENT_DISCONNECT_REQUESTED);
+        this.events.trigger(this.EVENT_DISCONNECT_REQUESTED);
     }
 
     private handleControlMessageReconnect() {
@@ -766,7 +756,7 @@ class Streaming {
      */
     private onConnectionSlow() {
         log.info(LOG_AREA, 'Connection is slow');
-        this.trigger(this.EVENT_CONNECTION_SLOW);
+        this.events.trigger(this.EVENT_CONNECTION_SLOW);
     }
 
     /**

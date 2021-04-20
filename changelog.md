@@ -1,3 +1,8 @@
+### v9.0.0
+
+#### Breaking
+- AuthProvider/Streaming classes don't expose event emitter API directly, it is now possible to access event API through the `events` property.
+
 ### v8.4.0
 - Add pause, resume support to freeze subscriptions
 

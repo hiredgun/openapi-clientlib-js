@@ -333,7 +333,7 @@ describe('openapi Streaming', () => {
             subscription.reset = jest.fn().mockName('reset');
             subscription.dispose = jest.fn().mockName('dispose');
             stateChangedSpy = jest.fn().mockName('stateChanged');
-            streaming.on('connectionStateChanged', stateChangedSpy);
+            streaming.events.on('connectionStateChanged', stateChangedSpy);
             return streaming;
         }
 
@@ -792,21 +792,21 @@ describe('openapi Streaming', () => {
 
         it('handles connection slow events', () => {
             const connectionSlowSpy = jest.fn().mockName('spyOnConnectionSlow');
-            streaming.on(streaming.EVENT_CONNECTION_SLOW, connectionSlowSpy);
+            streaming.events.on(streaming.EVENT_CONNECTION_SLOW, connectionSlowSpy);
             connectionSlowCallback();
             expect(connectionSlowSpy.mock.calls.length).toEqual(1);
         });
         it('handles connection error events', () => {
-            jest.spyOn(log, 'warn');
+            const warnLogSpy = jest.spyOn(log, 'warn');
             errorCallback('error details');
 
-            expect(log.warn.mock.calls.length).toEqual(1);
+            expect(warnLogSpy.mock.calls.length).toEqual(1);
         });
         it('handles signal-r log calls', () => {
-            jest.spyOn(log, 'debug');
+            const logDebugSpy = jest.spyOn(log, 'debug');
             // @ts-expect-error
             mockConnection.log('my message');
-            expect(log.debug.mock.calls.length).toEqual(1);
+            expect(logDebugSpy.mock.calls.length).toEqual(1);
         });
     });
 
@@ -886,7 +886,7 @@ describe('openapi Streaming', () => {
                 .fn()
                 .mockName('spyOnDisconnectRequested');
 
-            streaming.on(
+            streaming.events.on(
                 streaming.EVENT_DISCONNECT_REQUESTED,
                 disconnectRequestedSpy,
             );
@@ -1535,7 +1535,7 @@ describe('openapi Streaming', () => {
             });
 
             // mock fallback implementation
-            streaming.on(streaming.EVENT_STREAMING_FAILED, () => {
+            streaming.events.on(streaming.EVENT_STREAMING_FAILED, () => {
                 streaming.resetStreaming('newStreamingUrl', {
                     transportTypes: [streamingTransports.PLAIN_WEBSOCKETS],
                 });

@@ -1,11 +1,5 @@
-/**
- * @module saxo/openapi/authProvider
- * @ignore
- */
-
-// -- Local variables section --
-
-import emitter from '../micro-emitter';
+import MicroEmitter from '../micro-emitter';
+import type { IEventEmitter } from '../micro-emitter';
 import log from '../log';
 import { startsWith } from '../utils/string';
 import fetch from '../utils/fetch';
@@ -29,8 +23,6 @@ const TOKEN_BEARER = 'Bearer ';
 const STATE_WAITING = 0x1;
 const STATE_REFRESHING = 0x2;
 const STATE_FAILED = 0x4;
-
-// -- Local methods section --
 
 /**
  * Returns the absolute timestamp of the expiry based on the current date and time.
@@ -113,21 +105,10 @@ class AuthProvider {
     EVENT_TOKEN_RECEIVED = 'tokenReceived';
     // Type of event that occurs when the token refresh fails.
     EVENT_TOKEN_REFRESH_FAILED = 'tokenRefreshFailed';
-
-    // fix-me need to remove once we have microEmitter implement as class
-    trigger: any;
-
-    // fix-me need to remove once we have microEmitter implement as class
-    on: any;
-
-    // fix-me need to remove once we have microEmitter implement as class
-    one: any;
-
-    // fix-me need to remove once we have microEmitter implement as class
-    off: any;
+    events: IEventEmitter;
 
     constructor(options: Options) {
-        emitter.mixinTo(this);
+        this.events = new MicroEmitter();
 
         if (!options?.token && !options?.tokenRefreshUrl) {
             throw new Error('No token supplied and no way to get it');
@@ -186,7 +167,7 @@ class AuthProvider {
         if (this.tokenRefreshTimer) {
             clearTimeout(this.tokenRefreshTimer);
         }
-        this.trigger(this.EVENT_TOKEN_REFRESH);
+        this.events.trigger(this.EVENT_TOKEN_REFRESH);
         if (this.tokenRefreshUrl) {
             this.fetchToken(this.tokenRefreshUrl);
         }
@@ -226,7 +207,7 @@ class AuthProvider {
         );
         this.set(token, expiry);
         this.createTimerForNextToken();
-        this.trigger(this.EVENT_TOKEN_RECEIVED, token, expiry);
+        this.events.trigger(this.EVENT_TOKEN_RECEIVED, token, expiry);
     };
 
     // Fix me remove any
@@ -251,7 +232,7 @@ class AuthProvider {
         }
 
         if (isAuthenticationError) {
-            this.trigger(this.EVENT_TOKEN_REFRESH_FAILED);
+            this.events.trigger(this.EVENT_TOKEN_REFRESH_FAILED);
             this.state = STATE_FAILED;
             return;
         }
@@ -266,7 +247,7 @@ class AuthProvider {
             );
         } else {
             this.state = STATE_FAILED;
-            this.trigger(this.EVENT_TOKEN_REFRESH_FAILED);
+            this.events.trigger(this.EVENT_TOKEN_REFRESH_FAILED);
         }
     };
 
