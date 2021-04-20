@@ -21,7 +21,6 @@ ParserFacade.addParsers({
 });
 
 describe('openapi StreamingSubscription', () => {
-    // FIXME any
     let transport: any;
     let updateSpy: jest.Mock;
     let createdSpy: jest.Mock;

@@ -19,7 +19,7 @@ export interface RetryDelayLevel {
     delay: number;
 }
 export interface StreamingConfigurableOptions {
-    waitForPageLoad: boolean;
+    waitForPageLoad?: boolean;
     transportTypes?: Array<TransportTypes>;
     connectRetryDelay?: number;
     connectRetryDelayLevels?: RetryDelayLevel[];

@@ -1,9 +1,3 @@
-/**
- * Queue (FIFO) of pending subscription actions. Allows for easier abstraction of managing list of pending actions.
- * In addition to standard queue implementation, provides:
- *  - merging consecutive duplicated actions
- *  - merging of uneccessary combinations: ACTION_SUBSCRIBE action before ACTION_UNSUBSCRIBE, is merged to ACTION_UNSUBSCRIBE.
- */
 import {
     ACTION_SUBSCRIBE,
     ACTION_UNSUBSCRIBE,
@@ -18,7 +12,10 @@ export interface QueuedItem {
 }
 
 /**
- * Queue (FIFO) for storing pending subscription actions.
+ * Queue (FIFO) of pending subscription actions. Allows for easier abstraction of managing list of pending actions.
+ * In addition to standard queue implementation, provides:
+ *  - merging consecutive duplicated actions
+ *  - merging of uneccessary combinations: ACTION_SUBSCRIBE action before ACTION_UNSUBSCRIBE, is merged to ACTION_UNSUBSCRIBE.
  */
 class SubscriptionQueue {
     items: QueuedItem[] = [];

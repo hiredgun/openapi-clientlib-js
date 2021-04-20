@@ -59,13 +59,13 @@ const STATE_DISPOSED = 'connection-state-disposed';
 class Connection {
     baseUrl: string;
     failCallback: Callback;
-    startCallback = NOOP;
+    startCallback: Callback | undefined = NOOP;
     stateChangedCallback = NOOP;
     receiveCallback = NOOP;
     connectionSlowCallback = NOOP;
     authToken: string | null = null;
     authExpiry: number | null | undefined = null;
-    contextId: number | null = null;
+    contextId: string | null = null;
     options;
     // FIXME use correct type once migrated
     transports: any;
@@ -292,7 +292,7 @@ class Connection {
 
     updateQuery(
         authToken: string,
-        contextId: number,
+        contextId: string,
         authExpiry?: number,
         forceAuth = false,
     ) {

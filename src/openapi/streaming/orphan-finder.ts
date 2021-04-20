@@ -1,11 +1,4 @@
-﻿/**
- * Finds subscriptions that have become orphaned. This only happens if an open api server goes down, but it requires that
- * the orphaned subscription is restarted. A simpler implementation would be to have a setTimeout/clearTimeout onActivity
- * in each subscription, but this class was abstracted for performance in order to reduce the number of setTimeouts/clearTimeouts
- * - with any number of subscriptions at the smallest refresh interval, with millions of updates per second, this class only
- * checks subscriptions when a new one is started and then once per second overall.
- */
-import log from '../../log';
+﻿import log from '../../log';
 import type Subscription from './subscription';
 
 const LOG_AREA = 'StreamingOrphanFinder';
@@ -17,6 +10,13 @@ interface OnOrphanFoundHandler {
     (subscription: Subscription): void;
 }
 
+/**
+ * Finds subscriptions that have become orphaned. This only happens if an open api server goes down, but it requires that
+ * the orphaned subscription is restarted. A simpler implementation would be to have a setTimeout/clearTimeout onActivity
+ * in each subscription, but this class was abstracted for performance in order to reduce the number of setTimeouts/clearTimeouts
+ * - with any number of subscriptions at the smallest refresh interval, with millions of updates per second, this class only
+ * checks subscriptions when a new one is started and then once per second overall.
+ */
 class StreamingOrphanFinder {
     subscriptions: Subscription[];
     nextUpdateTime = Infinity;

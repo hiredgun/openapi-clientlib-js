@@ -11,7 +11,7 @@ describe('openapi SubscriptionQueue', () => {
 
         it('throws if no action', () => {
             expect(() => {
-                // @ts-expect-error checking invalid
+                // @ts-expect-error checking invalid usage
                 queue.enqueue({});
             }).toThrow();
         });
@@ -64,8 +64,7 @@ describe('openapi SubscriptionQueue', () => {
             };
         }
 
-        // eslint-disable-next-line jest/consistent-test-it
-        test.each([
+        it.each([
             // Basic tests
             [
                 'should dequeue first and only action and leave queue empty',

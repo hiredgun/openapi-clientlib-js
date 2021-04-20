@@ -10,7 +10,8 @@ import {
 import SubscriptionQueue from './subscription-queue';
 import type { QueuedItem } from './subscription-queue';
 import ParserFacade from './parser/parser-facade';
-// import type ParserBase from './parser/parser-base';
+import type { ITransport } from '../transport/trasportBase';
+import type { TransportCoreOptions } from '../transport/types';
 
 // TODO improve naming
 const updateTypes = {
@@ -46,15 +47,6 @@ export interface SubscriptionArgs {
     RefreshRate?: number;
     Top?: number;
     Tag?: string;
-}
-
-interface TransportPostOptions {
-    body: SubscriptionArgs & {
-        ContextId: string;
-        ReferenceId: string;
-        KnownSchemas?: string[];
-    };
-    headers?: Record<string, any>;
 }
 
 interface SubscriptionSuccessResult {
@@ -134,8 +126,7 @@ class Subscription {
     queue = new SubscriptionQueue();
     parser;
     onStateChangedCallbacks: Array<(state: SubscriptionState) => void> = [];
-    // FIXME - any until transport is migrated
-    transport: any;
+    transport: ITransport;
     servicePath;
     url;
     onSubscriptionCreated;
@@ -156,8 +147,7 @@ class Subscription {
 
     constructor(
         streamingContextId: string,
-        // FIXME - any until transport is migrated
-        transport: any,
+        transport: ITransport,
         servicePath: string,
         url: string,
         subscriptionArgs: SubscriptionArgs,
@@ -249,7 +239,7 @@ class Subscription {
             ReferenceId: referenceId,
             KnownSchemas: this.parser.getSchemaNames(),
         };
-        const options: TransportPostOptions = { body: data };
+        const options: TransportCoreOptions = { body: data };
 
         if (this.headers) {
             options.headers = { ...this.headers };
@@ -266,6 +256,10 @@ class Subscription {
         this.currentStreamingContextId = this.streamingContextId;
         this.transport
             .post(this.servicePath, subscribeUrl, null, options)
+            // @ts-expect-error FIXME - our custom fetch wrapper may
+            // return result without a response or the response of a different type.
+            // Add proper type checks inside onSubscribeSuccess to let TS know
+            // that a correct response is used
             .then(this.onSubscribeSuccess.bind(this, referenceId))
             .catch(this.onSubscribeError.bind(this, referenceId));
     }
@@ -276,11 +270,11 @@ class Subscription {
     private unsubscribe() {
         this.setState(this.STATE_UNSUBSCRIBE_REQUESTED);
         // capture the reference id so we can tell in the response whether it is the latest call
-        const referenceId = this.referenceId;
+        const referenceId = this.referenceId as string;
 
         this.transport
             .delete(this.servicePath, this.url + '/{contextId}/{referenceId}', {
-                contextId: this.currentStreamingContextId,
+                contextId: this.currentStreamingContextId as string,
                 referenceId,
             })
             .then(() => this.onUnsubscribeSuccess(referenceId))
@@ -298,8 +292,8 @@ class Subscription {
                 this.servicePath,
                 this.url + '/{contextId}/{referenceId}',
                 {
-                    contextId: this.currentStreamingContextId,
-                    referenceId: this.referenceId,
+                    contextId: this.currentStreamingContextId as string,
+                    referenceId: this.referenceId as string,
                 },
                 { body: args },
             )
@@ -544,7 +538,7 @@ class Subscription {
     private cleanUpLeftOverSubscription(referenceId: string) {
         this.transport
             .delete(this.servicePath, this.url + '/{contextId}/{referenceId}', {
-                contextId: this.currentStreamingContextId,
+                contextId: this.currentStreamingContextId as string,
                 referenceId,
             })
             .catch((error: unknown) => {
