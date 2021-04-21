@@ -20,7 +20,11 @@ export interface IEventEmitter {
      * @param {function} [onFunction] - The function to call
      * @param [that] - The context with which to call onFunction (useful also for unsubscribing only a instance)
      */
-    off(eventType?: string | null, onFunction?: Callback | null, that?: any): this;
+    off(
+        eventType?: string | null,
+        onFunction?: Callback | null,
+        that?: any,
+    ): this;
     /**
      * Triggers an event
      * @param {string} eventType - The event type to trigger
@@ -103,7 +107,7 @@ class MicroEmitter implements IEventEmitter {
         return this;
     }
 
-    trigger = (eventType: string, ...args: any[]) => {
+    trigger(eventType: string, ...args: any[]) {
         const eventSubscribers = this.subscribers[eventType];
         if (eventSubscribers) {
             for (let i = eventSubscribers.length - 1; i >= 0; i--) {
@@ -115,7 +119,7 @@ class MicroEmitter implements IEventEmitter {
             }
         }
         return this;
-    };
+    }
 }
 
 export default MicroEmitter;

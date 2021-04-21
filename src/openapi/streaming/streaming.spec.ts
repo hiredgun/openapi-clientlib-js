@@ -167,12 +167,12 @@ describe('openapi Streaming', () => {
             const streaming = new Streaming(transport, 'testUrl', authProvider);
 
             expect(mockConnection.start).toHaveBeenCalledTimes(0);
-            expect(authProvider.one).toHaveBeenCalledTimes(1);
+            expect(authProvider.events.one).toHaveBeenCalledTimes(1);
 
             // change the token and expiry and call the one callback
             authProvider.getExpiry.mockImplementation(() => Date.now() + 1000);
             authProvider.getToken.mockImplementation(() => 'Bearer NEWTOKEN');
-            authProvider.one.mock.calls[0][1]();
+            authProvider.events.one.mock.calls[0][1]();
 
             expect(mockConnection.start).toHaveBeenCalledTimes(1);
             expect(streaming.getQuery()).toEqual(
@@ -792,7 +792,10 @@ describe('openapi Streaming', () => {
 
         it('handles connection slow events', () => {
             const connectionSlowSpy = jest.fn().mockName('spyOnConnectionSlow');
-            streaming.events.on(streaming.EVENT_CONNECTION_SLOW, connectionSlowSpy);
+            streaming.events.on(
+                streaming.EVENT_CONNECTION_SLOW,
+                connectionSlowSpy,
+            );
             connectionSlowCallback();
             expect(connectionSlowSpy.mock.calls.length).toEqual(1);
         });

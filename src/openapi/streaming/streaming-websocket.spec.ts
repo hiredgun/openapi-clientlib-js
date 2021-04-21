@@ -35,8 +35,7 @@ describe('openapi Streaming', () => {
     let receivedCallback: (arg: any) => void;
     let authProvider: any;
     let mockConnection;
-    // FIXME try to fix once Transport is migrated
-    let transport: any;
+    let transport: ReturnType<typeof mockTransport>;
 
     beforeEach(() => {
         (WebSocketTransport.isSupported as jest.Mock).mockReturnValue(true);
@@ -537,7 +536,10 @@ describe('openapi Streaming', () => {
 
         it('handles connection slow events', () => {
             const connectionSlowSpy = jest.fn().mockName('spyOnConnectionSlow');
-            streaming.events.on(streaming.EVENT_CONNECTION_SLOW, connectionSlowSpy);
+            streaming.events.on(
+                streaming.EVENT_CONNECTION_SLOW,
+                connectionSlowSpy,
+            );
             connectionSlowCallback();
             expect(connectionSlowSpy.mock.calls.length).toEqual(1);
         });

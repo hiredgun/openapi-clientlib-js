@@ -3,7 +3,7 @@ import MicroEmitter from '../../micro-emitter';
 function mockAuthProvider() {
     const EVENT_TOKEN_RECEIVED = 'testTokenReceived';
 
-    const emitter= new MicroEmitter();
+    const emitter = new MicroEmitter();
 
     const authProvider = {
         getToken: jest.fn().mockImplementation(() => 'Bearer TOKEN'),
@@ -11,27 +11,30 @@ function mockAuthProvider() {
         setExpiry(value: number) {
             this.getExpiry.mockImplementation(() => value);
         },
-        on: jest.fn().mockImplementation((eventName, cb, context) => {
-            if (eventName !== EVENT_TOKEN_RECEIVED) {
-                throw new Error('unexpected event call');
-            }
-            emitter.on(eventName, cb, context);
-        }),
-        one: jest.fn().mockImplementation((eventName, cb, context) => {
-            if (eventName !== EVENT_TOKEN_RECEIVED) {
-                throw new Error('unexpected event call');
-            }
-            emitter.one(eventName, cb, context);
-        }),
-        off: jest.fn().mockImplementation((eventName, cb, context) => {
-            if (eventName !== EVENT_TOKEN_RECEIVED) {
-                throw new Error('unexpected event call');
-            }
-            emitter.off(eventName, cb, context);
-        }),
+        events: {
+            on: jest.fn().mockImplementation((eventName, cb, context) => {
+                if (eventName !== EVENT_TOKEN_RECEIVED) {
+                    throw new Error('unexpected event call');
+                }
+                emitter.on(eventName, cb, context);
+            }),
+            one: jest.fn().mockImplementation((eventName, cb, context) => {
+                if (eventName !== EVENT_TOKEN_RECEIVED) {
+                    throw new Error('unexpected event call');
+                }
+                emitter.one(eventName, cb, context);
+            }),
+            off: jest.fn().mockImplementation((eventName, cb, context) => {
+                if (eventName !== EVENT_TOKEN_RECEIVED) {
+                    throw new Error('unexpected event call');
+                }
+                emitter.off(eventName, cb, context);
+            }),
+        },
         triggerTokenReceived() {
             emitter.trigger(EVENT_TOKEN_RECEIVED);
         },
+
         tokenRejected: jest.fn(),
         isFetchingNewToken: jest.fn().mockReturnValue(false),
         refreshOpenApiToken: jest.fn(),

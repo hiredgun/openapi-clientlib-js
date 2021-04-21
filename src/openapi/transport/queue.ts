@@ -63,8 +63,7 @@ class TransportQueue extends TransportBase {
                 this.isQueueing = true;
             }
             // subscribe to listen for authentication changes that might trigger auth to be valid and the queue to empty
-            // @ts-ignore fix-me
-            authProvider.on(
+            authProvider.events.on(
                 authProvider.EVENT_TOKEN_RECEIVED,
                 this.authTokenReceived,
                 this,
@@ -180,8 +179,7 @@ class TransportQueue extends TransportBase {
     dispose() {
         this.queue.length = 0;
         if (this.authProvider) {
-            // @ts-ignore fix-me
-            this.authProvider.off(
+            this.authProvider.events.off(
                 this.authProvider.EVENT_TOKEN_RECEIVED,
                 this.authTokenReceived,
                 this,

@@ -192,11 +192,14 @@ class Streaming {
 
         this.setOptions({ ...DEFAULT_STREAMING_OPTIONS, ...options });
 
-        this.authProvider.events.on(this.authProvider.EVENT_TOKEN_RECEIVED, () => {
-            // Forcing authorization request upon new token arrival.
-            const forceAuthorizationRequest = true;
-            this.updateConnectionQuery(forceAuthorizationRequest);
-        });
+        this.authProvider.events.on(
+            this.authProvider.EVENT_TOKEN_RECEIVED,
+            () => {
+                // Forcing authorization request upon new token arrival.
+                const forceAuthorizationRequest = true;
+                this.updateConnectionQuery(forceAuthorizationRequest);
+            },
+        );
 
         this.orphanFinder = new StreamingOrphanFinder(
             this.subscriptions,
@@ -425,7 +428,10 @@ class Streaming {
             },
         );
 
-        this.events.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
+        this.events.trigger(
+            this.EVENT_CONNECTION_STATE_CHANGED,
+            this.connectionState,
+        );
 
         if (this.disposed || this.paused) {
             return;
@@ -490,7 +496,10 @@ class Streaming {
 
         log.info(LOG_AREA, 'Connection started');
 
-        this.events.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
+        this.events.trigger(
+            this.EVENT_CONNECTION_STATE_CHANGED,
+            this.connectionState,
+        );
     }
 
     // @ts-expect-error FIXME once transports are migrated to TS

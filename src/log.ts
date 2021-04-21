@@ -1,11 +1,10 @@
 import MicroEmitter from './micro-emitter';
 
-
 export interface ILogger {
-  error(...args: unknown[]): void;
-  warn(...args: unknown[]): void;
-  info(...args: unknown[]): void;
-  debug(...args: unknown[]): void;
+    error(...args: unknown[]): void;
+    warn(...args: unknown[]): void;
+    info(...args: unknown[]): void;
+    debug(...args: unknown[]): void;
 }
 
 /**
@@ -38,10 +37,10 @@ export class Log extends MicroEmitter implements ILogger {
      */
     readonly ERROR = 'error';
 
-    error = (...args: unknown[]) => this.trigger(this.ERROR, args);
-    warn = (...args: unknown[]) => this.trigger(this.WARN, args);
-    info = (...args: unknown[]) => this.trigger(this.INFO, args);
-    debug = (...args: unknown[]) => this.trigger(this.DEBUG, args);
+    error = (...args: unknown[]) => this.trigger(this.ERROR, ...args);
+    warn = (...args: unknown[]) => this.trigger(this.WARN, ...args);
+    info = (...args: unknown[]) => this.trigger(this.INFO, ...args);
+    debug = (...args: unknown[]) => this.trigger(this.DEBUG, ...args);
 }
 
 export default new Log();
