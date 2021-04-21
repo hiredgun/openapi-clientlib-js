@@ -104,10 +104,6 @@ describe('openapi Streaming', () => {
     function mockSubscription() {
         type Callback = (state: SubscriptionState) => void;
 
-        // function changeState(state) {
-        //     this.stateChangedCallback.forEach((callback) => callback(state));
-        // }
-
         function addStateChangedCallback(
             this: ReturnType<typeof mockSubscription>,
             callback: Callback,
@@ -129,7 +125,6 @@ describe('openapi Streaming', () => {
 
         const mock = {
             stateChangedCallback: [],
-            // changeState,
             onStreamingData: jest.fn(),
             onHeartbeat: jest.fn(),
             onConnectionUnavailable: jest.fn(),
