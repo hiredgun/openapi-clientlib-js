@@ -661,7 +661,10 @@ describe('openapi Streaming', () => {
             expect(Connection.prototype.start.mock.calls.length).toEqual(1);
             Connection.prototype.start.mockClear();
 
-            jest.spyOn(streaming.orphanFinder, 'stop');
+            const orphanFinderStopMethodSpy = jest.spyOn(
+                streaming.orphanFinder,
+                'stop',
+            );
 
             streaming.dispose();
 
@@ -677,8 +680,8 @@ describe('openapi Streaming', () => {
             expect(transport.delete.mock.calls[0][2]).toEqual({
                 contextId: '0000000000',
             });
-            // @ts-ignore
-            expect(streaming.orphanFinder.stop.mock.calls.length).toEqual(1);
+
+            expect(orphanFinderStopMethodSpy.mock.calls.length).toEqual(1);
 
             stateChangedCallback(constants.CONNECTION_STATE_DISCONNECTED);
 
@@ -771,11 +774,13 @@ describe('openapi Streaming', () => {
                 {},
             );
 
-            jest.spyOn(streaming.orphanFinder, 'update');
+            const orphanFinderUpdateMethodSpy = jest.spyOn(
+                streaming.orphanFinder,
+                'update',
+            );
             subscription.onSubscriptionCreated?.();
 
-            // @ts-ignore
-            expect(streaming.orphanFinder.update.mock.calls.length).toEqual(1);
+            expect(orphanFinderUpdateMethodSpy.mock.calls.length).toEqual(1);
         });
 
         it('passes on subscribe calls', () => {
