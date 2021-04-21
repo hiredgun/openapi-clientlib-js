@@ -69,7 +69,7 @@ class Connection {
     options: any;
     transports: any;
     state = STATE_CREATED;
-    tranportIndex: number | null = null;
+    transportIndex: number | null = null;
     transport: any;
     unauthorizedCallback: any;
 
@@ -105,7 +105,7 @@ class Connection {
     private getLogDetails = () => {
         return {
             url: this.baseUrl,
-            index: this.tranportIndex,
+            index: this.transportIndex,
             contextId: this.contextId,
             enabledTransports: this.options && this.options.transport,
         };
@@ -165,27 +165,28 @@ class Connection {
                 this.authExpiry,
             );
             const transportOptions = {
-                ...this.transports[this.tranportIndex].options,
+                ...this.transports[this.transportIndex as number].options,
                 ...this.options,
             };
             this.transport.start(transportOptions, this.startCallback);
         }
     };
 
+    // @ts-ignore fix-me
     private createTransport = (baseUrl: string) => {
-        if (this.tranportIndex === null || this.tranportIndex === undefined) {
-            this.tranportIndex = 0;
+        if (this.transportIndex === null || this.transportIndex === undefined) {
+            this.transportIndex = 0;
         } else {
-            this.tranportIndex++;
+            this.transportIndex++;
         }
 
-        if (this.tranportIndex > this.transports.length - 1) {
+        if (this.transportIndex > this.transports.length - 1) {
             // No more transports to choose from.
             return null;
         }
 
         // Create transport from supported transports lists.
-        const SelectedTransport = this.transports[this.tranportIndex].instance;
+        const SelectedTransport = this.transports[this.transportIndex].instance;
 
         if (!SelectedTransport.isSupported()) {
             // SelectedTransport transport is not supported by browser. Try to create next possible transport.
@@ -196,7 +197,7 @@ class Connection {
     };
 
     private ensureValidState = (
-        callback: (...arg: any) => any,
+        callback: Callback,
         callbackType: string,
         ...args: any
     ) => {
@@ -214,39 +215,31 @@ class Connection {
 
     setUnauthorizedCallback(callback: Callback) {
         if (this.transport) {
-            this.unauthorizedCallback = this.ensureValidState(
-                callback,
-                'unauthorizedCallback',
-            );
+            this.unauthorizedCallback = () =>
+                this.ensureValidState(callback, 'unauthorizedCallback');
             this.transport.setUnauthorizedCallback(this.unauthorizedCallback);
         }
     }
     setStateChangedCallback(callback: Callback) {
         if (this.transport) {
-            this.stateChangedCallback = this.ensureValidState(
-                callback,
-                'stateChangedCallback',
-            );
+            this.stateChangedCallback = () =>
+                this.ensureValidState(callback, 'stateChangedCallback');
             this.transport.setStateChangedCallback(this.stateChangedCallback);
         }
     }
 
     setReceivedCallback(callback: Callback) {
         if (this.transport) {
-            this.receiveCallback = this.ensureValidState(
-                callback,
-                'receivedCallback',
-            );
+            this.receiveCallback = () =>
+                this.ensureValidState(callback, 'receivedCallback');
             this.transport.setReceivedCallback(this.receiveCallback);
         }
     }
 
     setConnectionSlowCallback(callback: Callback) {
         if (this.transport) {
-            this.connectionSlowCallback = this.ensureValidState(
-                callback,
-                'connectionSlowCallback',
-            );
+            this.connectionSlowCallback = () =>
+                this.ensureValidState(callback, 'connectionSlowCallback');
             this.transport.setConnectionSlowCallback(
                 this.connectionSlowCallback,
             );
@@ -259,7 +252,7 @@ class Connection {
             this.startCallback = callback;
 
             const transportOptions = {
-                ...this.transports[this.tranportIndex].options,
+                ...this.transports[this.transportIndex as number].options,
                 ...this.options,
             };
             this.transport.start(transportOptions, this.startCallback);

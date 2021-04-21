@@ -108,7 +108,7 @@ class SignalrTransport {
         this.connection.connectionSlow(callback);
     }
 
-    start(options: any, callback: Callback) {
+    start(options?: any, callback?: Callback) {
         this.connection.start(options, callback);
     }
 
@@ -116,7 +116,7 @@ class SignalrTransport {
         this.connection.stop();
     }
 
-    updateQuery(authToken: string, contextId: number) {
+    updateQuery(authToken: string, contextId: string) {
         this.connection.qs = `authorization=${encodeURIComponent(
             authToken,
         )}&context=${encodeURIComponent(contextId)}`;

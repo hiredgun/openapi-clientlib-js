@@ -10,6 +10,15 @@ const BASE_URL = 'testUrl';
 
 type Callback = (...args: any) => any;
 
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace NodeJS {
+        interface Global {
+            $: any;
+        }
+    }
+}
+
 describe('openapi SignalR Transport', () => {
     let stateChangedCallback: Callback;
     let connectionSlowCallback: Callback;

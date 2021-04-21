@@ -3,18 +3,39 @@ import * as transportTypes from '../transportTypes';
 import * as constants from '../constants';
 import type { TransportTypes } from '../transportTypes';
 
-
 declare global {
     interface Window {
         signalrCore: any;
     }
-
 }
 
-type Callback = (...args: any) => any;
+type Callback = (...args: any[]) => any;
+
+type Error = {
+    message: string;
+    payload: any;
+};
+
+type Message = {
+    ReferenceId: string;
+    PayloadFormat: 1 | 2;
+    Payload: string;
+    MessageId: string;
+};
+
+type NormalizeMessage = {
+    ReferenceId: string;
+    MessageId: string;
+    DataFormat?: number;
+    Data: string | Uint8Array;
+};
+
+type Protocol = {
+    name: string;
+};
 
 const LOG_AREA = 'SignalrCoreTransport';
-const NOOP = () => { };
+const NOOP = () => {};
 
 // null at the end means stop trying and close the connection
 const RECONNECT_DELAYS = [0, 2000, 3000, 5000, 10000, null];
@@ -25,84 +46,15 @@ const renewStatus = {
     SESSION_NOT_FOUND: 2,
 };
 
-/**
- * Handles any signal-r log, and pipes it through our logging.
- * @param message
- */
-function handleLog(level, message) {
-    if (level < window.signalrCore.LogLevel.Warning) {
-        return;
-    }
-
-    log.warn(LOG_AREA, message);
-}
-
-function normalizeMessage(message, protocol) {
-    const { ReferenceId, PayloadFormat, Payload, MessageId } = message;
-
-    let dataFormat;
-    // Normalize to old streaming format for backward compatibility
-    if (PayloadFormat === 1) {
-        dataFormat = constants.DATA_FORMAT_JSON;
-    }
-
-    // Normalize to old streaming format for backward compatibility
-    if (PayloadFormat === 2) {
-        dataFormat = constants.DATA_FORMAT_PROTOBUF;
-    }
-
-    let data = Payload;
-    // JSON protocol converts bytes array to base64 encoded string
-    // we need to convert it back to bytes
-    if (protocol.name === 'json') {
-        data = new Uint8Array(
-            window
-                .atob(data)
-                .split('')
-                .map((char) => char.charCodeAt(0)),
-        );
-    }
-
-    return {
-        ReferenceId,
-        MessageId,
-        DataFormat: dataFormat,
-        Data: data,
-    };
-}
-
-function parseMessage(message, utf8Decoder) {
-    const { ReferenceId, DataFormat, MessageId } = message;
-    let data = message.Data;
-
-    if (DataFormat === constants.DATA_FORMAT_JSON) {
-        try {
-            data = utf8Decoder.decode(data);
-            data = JSON.parse(data);
-        } catch (error) {
-            error.payload = data;
-
-            throw error;
-        }
-    }
-
-    return {
-        ReferenceId,
-        MessageId,
-        DataFormat,
-        Data: data,
-    };
-}
-
 class SignalrCoreTransport {
     name = transportTypes.SIGNALR_CORE;
     baseUrl: string;
-    connection = null;
-    authToken = null;
-    authExpiry = null;
+    connection: any = null;
+    authToken: string | null = null;
+    authExpiry: number | null = null;
     contextId: null | string = null;
-    messageStream = null;
-    lastMessageId = null;
+    messageStream: any = null;
+    lastMessageId: string | null = null;
     hasStreamingStarted = false;
     isDisconnecting = false;
     hasTransportError = false;
@@ -111,8 +63,8 @@ class SignalrCoreTransport {
 
     // callbacks
     transportFailCallback = NOOP;
-    stateChangedCallback = NOOP;
-    receivedCallback = NOOP;
+    stateChangedCallback: Callback = NOOP;
+    receivedCallback: Callback = NOOP;
     errorCallback = NOOP;
     unauthorizedCallback = NOOP;
 
@@ -135,6 +87,76 @@ class SignalrCoreTransport {
 
             transportFailCallback();
         }
+    }
+
+    /**
+     * Handles any signal-r log, and pipes it through our logging.
+     * @param message
+     */
+    private handleLog(level: number, message: string) {
+        if (level < window.signalrCore.LogLevel.Warning) {
+            return;
+        }
+
+        log.warn(LOG_AREA, message);
+    }
+
+    private parseMessage(message: NormalizeMessage, utf8Decoder: TextDecoder) {
+        const { ReferenceId, DataFormat, MessageId } = message;
+        let data = message.Data;
+
+        if (DataFormat === constants.DATA_FORMAT_JSON) {
+            try {
+                // @ts-ignore fix-me as types is not matched
+                data = utf8Decoder.decode(data);
+                data = JSON.parse(data);
+            } catch (error) {
+                error.payload = data;
+
+                throw error;
+            }
+        }
+
+        return {
+            ReferenceId,
+            MessageId,
+            DataFormat,
+            Data: data,
+        };
+    }
+
+    private normalizeMessage(message: Message, protocol: Protocol) {
+        const { ReferenceId, PayloadFormat, Payload, MessageId } = message;
+
+        let dataFormat;
+        // Normalize to old streaming format for backward compatibility
+        if (PayloadFormat === 1) {
+            dataFormat = constants.DATA_FORMAT_JSON;
+        }
+
+        // Normalize to old streaming format for backward compatibility
+        if (PayloadFormat === 2) {
+            dataFormat = constants.DATA_FORMAT_PROTOBUF;
+        }
+
+        let data: string | Uint8Array = Payload;
+        // JSON protocol converts bytes array to base64 encoded string
+        // we need to convert it back to bytes
+        if (protocol.name === 'json') {
+            data = new Uint8Array(
+                window
+                    .atob(data)
+                    .split('')
+                    .map((char) => char.charCodeAt(0)),
+            );
+        }
+
+        return {
+            ReferenceId,
+            MessageId,
+            DataFormat: dataFormat,
+            Data: data,
+        };
     }
 
     static isSupported = function () {
@@ -194,9 +216,13 @@ class SignalrCoreTransport {
     }: {
         baseUrl: string;
         contextId: string | null;
-        accessTokenFactory: () => number | null;
+        accessTokenFactory: () => string | null;
         protocol: any;
-        retryPolicy: () => null | number;
+        retryPolicy: {
+            nextRetryDelayInMilliseconds: (arg0: {
+                previousRetryCount: number;
+            }) => null | number;
+        };
         skipNegotiation: boolean;
         transportType: TransportTypes;
     }) {
@@ -217,12 +243,19 @@ class SignalrCoreTransport {
             .withHubProtocol(protocol)
             .withAutomaticReconnect(retryPolicy)
             .configureLogging({
-                log: handleLog,
+                log: this.handleLog,
             })
             .build();
     }
 
-    start(options, onStartCallback: Callback) {
+    start(
+        options: {
+            messageSerializationProtocol: any;
+            skipNegotiation: boolean;
+            transportType: TransportTypes;
+        },
+        onStartCallback: Callback,
+    ) {
         if (this.connection) {
             log.warn(
                 LOG_AREA,
@@ -258,8 +291,10 @@ class SignalrCoreTransport {
             return;
         }
 
-        this.connection.onclose((error) => this.handleConnectionClosure(error));
-        this.connection.onreconnecting((error) => {
+        this.connection.onclose((error: Error) =>
+            this.handleConnectionClosure(error),
+        );
+        this.connection.onreconnecting((error: Error) => {
             log.debug(LOG_AREA, 'Attempting to reconnect', {
                 error,
             });
@@ -305,7 +340,7 @@ class SignalrCoreTransport {
                     this.renewSession();
                 }
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 log.error(
                     LOG_AREA,
                     'Error occurred while connecting to streaming service',
@@ -317,276 +352,283 @@ class SignalrCoreTransport {
                 this.transportFailCallback();
             });
     }
-}
 
-SignalrCoreTransport.prototype.stop = function (hasTransportError) {
-    if (!this.connection) {
-        log.warn(LOG_AREA, "connection doesn't exist");
-        return;
+    stop(hasTransportError?: boolean) {
+        if (!this.connection) {
+            log.warn(LOG_AREA, "connection doesn't exist");
+            return;
+        }
+
+        this.isDisconnecting = true;
+        if (hasTransportError) {
+            this.hasTransportError = true;
+        }
+
+        const sendCloseMessage = () =>
+            this.connection
+                ? this.connection
+                      .invoke('CloseConnection')
+                      .catch((err: Error) => {
+                          log.info(
+                              LOG_AREA,
+                              'Error occurred while invoking CloseConnection',
+                              err,
+                          );
+                      })
+                : Promise.resolve();
+
+        // close message stream before closing connection
+        if (this.messageStream) {
+            return this.messageStream
+                .cancelCallback()
+                .then(sendCloseMessage)
+                .then(() => this.connection && this.connection.stop());
+        }
+
+        return sendCloseMessage().then(
+            () => this.connection && this.connection.stop(),
+        );
     }
 
-    this.isDisconnecting = true;
-    if (hasTransportError) {
-        this.hasTransportError = true;
-    }
+    createMessageStream(protocol: Protocol) {
+        if (!this.connection) {
+            log.warn(
+                LOG_AREA,
+                'Trying to create message stream before creating connection',
+            );
+            return;
+        }
 
-    const sendCloseMessage = () =>
-        this.connection
-            ? this.connection.invoke('CloseConnection').catch((err) => {
+        const messageStream = this.connection.stream('StartStreaming');
+        messageStream.subscribe({
+            next: (message: Message) =>
+                this.handleNextMessage(message, protocol),
+            error: (error: Error) => this.handleMessageStreamError(error),
+            complete: () => {
                 log.info(
                     LOG_AREA,
-                    'Error occurred while invoking CloseConnection',
-                    err,
+                    'Message stream closed gracefully. Closing connection',
                 );
-            })
-            : Promise.resolve();
 
-    // close message stream before closing connection
-    if (this.messageStream) {
-        return this.messageStream
-            .cancelCallback()
-            .then(sendCloseMessage)
-            .then(() => this.connection && this.connection.stop());
+                this.messageStream = null;
+                this.stop();
+            },
+        });
+
+        this.messageStream = messageStream;
     }
 
-    return sendCloseMessage().then(
-        () => this.connection && this.connection.stop(),
-    );
-};
+    handleConnectionClosure(error: Error) {
+        if (error) {
+            log.error(LOG_AREA, 'connection closed abruptly', { error });
+        }
 
-SignalrCoreTransport.prototype.createMessageStream = function (protocol) {
-    if (!this.connection) {
-        log.warn(
-            LOG_AREA,
-            'Trying to create message stream before creating connection',
-        );
-        return;
+        // Do not trigger disconnect in case of transport fallback to avoid reconnection
+        // the transport explicitely sets this error flag when there is some issue while parsing message
+        // or if unknown status is received during token renewal
+        const shouldFallbackToOtherTransport = this.hasTransportError;
+
+        this.connection = null;
+        this.messageStream = null;
+        this.lastMessageId = null;
+        this.isDisconnecting = false;
+        this.hasStreamingStarted = false;
+        this.hasTransportError = false;
+
+        if (shouldFallbackToOtherTransport) {
+            this.transportFailCallback();
+            return;
+        }
+
+        this.setState(constants.CONNECTION_STATE_DISCONNECTED);
     }
 
-    const messageStream = this.connection.stream('StartStreaming');
-    messageStream.subscribe({
-        next: (message) => this.handleNextMessage(message, protocol),
-        error: (error) => this.handleMessageStreamError(error),
-        complete: () => {
-            log.info(
+    handleNextMessage(message: Message, protocol: Protocol) {
+        if (!this.connection) {
+            log.warn(
                 LOG_AREA,
-                'Message stream closed gracefully. Closing connection',
+                'Message received after connection was closed',
+                message,
+            );
+            return;
+        }
+
+        if (!this.hasStreamingStarted) {
+            this.hasStreamingStarted = true;
+        }
+
+        try {
+            const normalizedMessage = this.normalizeMessage(message, protocol);
+            const data = this.parseMessage(
+                normalizedMessage,
+                this.utf8Decoder as TextDecoder,
+            );
+
+            this.lastMessageId = data.MessageId;
+            this.receivedCallback(data);
+        } catch (error) {
+            const errorMessage = error.message || '';
+            log.error(
+                LOG_AREA,
+                `Error occurred while parsing message. ${errorMessage}`,
+                {
+                    error,
+                    payload: error.payload,
+                    protocol: protocol.name,
+                },
+            );
+
+            this.stop(true);
+        }
+    }
+
+    handleMessageStreamError(error: Error) {
+        // It will be called if signalr failed to send message to start streaming
+        // or if connection is closed with some error
+        // only handle the 1st case since connection closing with error is already handled in onclose handler
+        // It will trigger disconnected state and will eventually try to reconnect again
+        if (!this.hasStreamingStarted) {
+            log.error(
+                LOG_AREA,
+                'Error occurred while starting message streaming',
+                {
+                    error,
+                },
             );
 
             this.messageStream = null;
             this.stop();
-        },
-    });
-
-    this.messageStream = messageStream;
-};
-
-SignalrCoreTransport.prototype.handleConnectionClosure = function (error) {
-    if (error) {
-        log.error(LOG_AREA, 'connection closed abruptly', { error });
+        }
     }
 
-    // Do not trigger disconnect in case of transport fallback to avoid reconnection
-    // the transport explicitely sets this error flag when there is some issue while parsing message
-    // or if unknown status is received during token renewal
-    const shouldFallbackToOtherTransport = this.hasTransportError;
-
-    this.connection = null;
-    this.messageStream = null;
-    this.lastMessageId = null;
-    this.isDisconnecting = false;
-    this.hasStreamingStarted = false;
-    this.hasTransportError = false;
-
-    if (shouldFallbackToOtherTransport) {
-        this.transportFailCallback();
-        return;
-    }
-
-    this.setState(constants.CONNECTION_STATE_DISCONNECTED);
-};
-
-SignalrCoreTransport.prototype.handleNextMessage = function (
-    message,
-    protocol,
-) {
-    if (!this.connection) {
-        log.warn(
-            LOG_AREA,
-            'Message received after connection was closed',
-            message,
-        );
-        return;
-    }
-
-    if (!this.hasStreamingStarted) {
-        this.hasStreamingStarted = true;
-    }
-
-    try {
-        const normalizedMessage = normalizeMessage(message, protocol);
-        const data = parseMessage(normalizedMessage, this.utf8Decoder);
-
-        this.lastMessageId = data.MessageId;
-        this.receivedCallback(data);
-    } catch (error) {
-        const errorMessage = error.message || '';
-        log.error(
-            LOG_AREA,
-            `Error occurred while parsing message. ${errorMessage}`,
-            {
-                error,
-                payload: error.payload,
-                protocol: protocol.name,
-            },
-        );
-
-        this.stop(true);
-    }
-};
-
-SignalrCoreTransport.prototype.handleMessageStreamError = function (error) {
-    // It will be called if signalr failed to send message to start streaming
-    // or if connection is closed with some error
-    // only handle the 1st case since connection closing with error is already handled in onclose handler
-    // It will trigger disconnected state and will eventually try to reconnect again
-    if (!this.hasStreamingStarted) {
-        log.error(LOG_AREA, 'Error occurred while starting message streaming', {
-            error,
-        });
-
-        this.messageStream = null;
-        this.stop();
-    }
-};
-
-SignalrCoreTransport.prototype.updateQuery = function (
-    authToken,
-    contextId,
-    authExpiry,
-    forceAuth = false,
-) {
-    log.debug(LOG_AREA, 'Updated query', {
-        contextId,
-        forceAuth,
-    });
-
-    this.contextId = contextId;
-    this.authExpiry = authExpiry;
-    this.authToken = authToken.replace('BEARER ', '');
-
-    if (forceAuth) {
-        this.renewSession();
-    }
-};
-
-SignalrCoreTransport.prototype.renewSession = function () {
-    if (
-        !this.connection ||
-        this.state !== constants.CONNECTION_STATE_CONNECTED
+    updateQuery(
+        authToken: string,
+        contextId: string,
+        authExpiry: number,
+        forceAuth = false,
     ) {
-        return;
+        log.debug(LOG_AREA, 'Updated query', {
+            contextId,
+            forceAuth,
+        });
+
+        this.contextId = contextId;
+        this.authExpiry = authExpiry;
+        this.authToken = authToken.replace('BEARER ', '');
+
+        if (forceAuth) {
+            this.renewSession();
+        }
     }
 
-    const authToken = this.authToken;
-    const contextId = this.contextId;
+    renewSession() {
+        if (
+            !this.connection ||
+            this.state !== constants.CONNECTION_STATE_CONNECTED
+        ) {
+            return;
+        }
 
-    return this.connection
-        .invoke('RenewToken', authToken)
-        .then(({ Status }) => {
-            switch (Status) {
-                case renewStatus.SUCCESS:
-                    log.info(
+        const authToken = this.authToken;
+        const contextId = this.contextId;
+
+        return this.connection
+            .invoke('RenewToken', authToken)
+            .then(({ Status }: { Status: number }) => {
+                switch (Status) {
+                    case renewStatus.SUCCESS:
+                        log.info(
+                            LOG_AREA,
+                            'Successfully renewed token for session',
+                            {
+                                contextId,
+                            },
+                        );
+                        return;
+
+                    case renewStatus.INVALID_TOKEN:
+                        // if this call was superseded by another one, then ignore this error
+                        // else let auth provider know of invalid token
+                        if (this.authToken === authToken) {
+                            this.unauthorizedCallback();
+                        }
+
+                        return;
+
+                    case renewStatus.SESSION_NOT_FOUND:
+                        log.warn(
+                            LOG_AREA,
+                            'Session not found while renewing session',
+                            {
+                                contextId,
+                            },
+                        );
+
+                        // should try to reconnect with different context id
+                        this.stop();
+                        return;
+
+                    default:
+                        log.error(
+                            LOG_AREA,
+                            'Unknown status received while renewing session',
+                            {
+                                status: Status,
+                                contextId,
+                            },
+                        );
+
+                        this.stop(true);
+                }
+            })
+            .catch((error: Error) => {
+                // Invocation could get cancelled due to connection being closed
+                if (
+                    !this.connection ||
+                    this.state !== constants.CONNECTION_STATE_CONNECTED
+                ) {
+                    log.debug(
                         LOG_AREA,
-                        'Successfully renewed token for session',
+                        'Token renewal failed. Either connection was closed or not connected',
                         {
-                            contextId,
+                            state: this.state,
                         },
                     );
-                    return;
-
-                case renewStatus.INVALID_TOKEN:
-                    // if this call was superseded by another one, then ignore this error
-                    // else let auth provider know of invalid token
-                    if (this.authToken === authToken) {
-                        this.unauthorizedCallback();
-                    }
 
                     return;
+                }
 
-                case renewStatus.SESSION_NOT_FOUND:
-                    log.warn(
-                        LOG_AREA,
-                        'Session not found while renewing session',
-                        {
-                            contextId,
-                        },
-                    );
+                log.warn(LOG_AREA, 'Failed to renew token', {
+                    error,
+                });
 
-                    // should try to reconnect with different context id
-                    this.stop();
-                    return;
-
-                default:
-                    log.error(
-                        LOG_AREA,
-                        'Unknown status received while renewing session',
-                        {
-                            status: Status,
-                            contextId,
-                        },
-                    );
-
-                    this.stop(true);
-            }
-        })
-        .catch((error) => {
-            // Invocation could get cancelled due to connection being closed
-            if (
-                !this.connection ||
-                this.state !== constants.CONNECTION_STATE_CONNECTED
-            ) {
-                log.debug(
-                    LOG_AREA,
-                    'Token renewal failed. Either connection was closed or not connected',
-                    {
-                        state: this.state,
-                    },
-                );
-
-                return;
-            }
-
-            log.warn(LOG_AREA, 'Failed to renew token', {
-                error,
+                // Retry
+                this.renewSession();
             });
+    }
 
-            // Retry
-            this.renewSession();
-        });
-};
+    setState(state: number) {
+        this.state = state;
+        this.stateChangedCallback(state);
+    }
 
-SignalrCoreTransport.prototype.setState = function (state) {
-    this.state = state;
-    this.stateChangedCallback(state);
-};
+    setStateChangedCallback(callback: Callback) {
+        this.stateChangedCallback = callback;
+    }
 
-SignalrCoreTransport.prototype.setStateChangedCallback = function (callback) {
-    this.stateChangedCallback = callback;
-};
+    setReceivedCallback(callback: Callback) {
+        this.receivedCallback = callback;
+    }
 
-SignalrCoreTransport.prototype.setReceivedCallback = function (callback) {
-    this.receivedCallback = callback;
-};
+    setErrorCallback(callback: Callback) {
+        this.errorCallback = callback;
+    }
 
-SignalrCoreTransport.prototype.setErrorCallback = function (callback) {
-    this.errorCallback = callback;
-};
+    setUnauthorizedCallback(callback: Callback) {
+        this.unauthorizedCallback = callback;
+    }
 
-SignalrCoreTransport.prototype.setUnauthorizedCallback = function (callback) {
-    this.unauthorizedCallback = callback;
-};
-
-SignalrCoreTransport.prototype.setConnectionSlowCallback = NOOP;
+    setConnectionSlowCallback = NOOP;
+}
 
 export default SignalrCoreTransport;

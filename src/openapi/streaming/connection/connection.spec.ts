@@ -1,4 +1,5 @@
-import Connection from './connection.ts';
+// @ts-nocheck
+import Connection from './connection';
 import * as transportTypes from './transportTypes';
 import 'fast-text-encoding';
 
@@ -6,9 +7,9 @@ describe('openapi Streaming connection', () => {
     const baseUrl = 'test-url';
     const token = 'token';
     const contextId = '00000000';
-    let mockWithUrlConfig;
-    let mockHubConnection;
-    let connection;
+    let mockWithUrlConfig: any;
+    let mockHubConnection: any;
+    let connection: Connection;
 
     beforeEach(() => {
         mockWithUrlConfig = jest.fn();
@@ -23,7 +24,7 @@ describe('openapi Streaming connection', () => {
         };
 
         class MockConnectionBuilder {
-            withUrl(...args) {
+            withUrl(...args: any[]) {
                 mockWithUrlConfig(...args);
                 return this;
             }
