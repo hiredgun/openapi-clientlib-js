@@ -11,26 +11,24 @@ function mockAuthProvider() {
         setExpiry(value: number) {
             this.getExpiry.mockImplementation(() => value);
         },
-        events: {
-            on: jest.fn().mockImplementation((eventName, cb, context) => {
-                if (eventName !== EVENT_TOKEN_RECEIVED) {
-                    throw new Error('unexpected event call');
-                }
-                emitter.on(eventName, cb, context);
-            }),
-            one: jest.fn().mockImplementation((eventName, cb, context) => {
-                if (eventName !== EVENT_TOKEN_RECEIVED) {
-                    throw new Error('unexpected event call');
-                }
-                emitter.one(eventName, cb, context);
-            }),
-            off: jest.fn().mockImplementation((eventName, cb, context) => {
-                if (eventName !== EVENT_TOKEN_RECEIVED) {
-                    throw new Error('unexpected event call');
-                }
-                emitter.off(eventName, cb, context);
-            }),
-        },
+        on: jest.fn().mockImplementation((eventName, cb, context) => {
+            if (eventName !== EVENT_TOKEN_RECEIVED) {
+                throw new Error('unexpected event call');
+            }
+            emitter.on(eventName, cb, context);
+        }),
+        one: jest.fn().mockImplementation((eventName, cb, context) => {
+            if (eventName !== EVENT_TOKEN_RECEIVED) {
+                throw new Error('unexpected event call');
+            }
+            emitter.one(eventName, cb, context);
+        }),
+        off: jest.fn().mockImplementation((eventName, cb, context) => {
+            if (eventName !== EVENT_TOKEN_RECEIVED) {
+                throw new Error('unexpected event call');
+            }
+            emitter.off(eventName, cb, context);
+        }),
         triggerTokenReceived() {
             emitter.trigger(EVENT_TOKEN_RECEIVED);
         },

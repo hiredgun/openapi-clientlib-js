@@ -1,5 +1,4 @@
 import MicroEmitter from '../micro-emitter';
-import type { IEventEmitter } from '../micro-emitter';
 import log from '../log';
 import { startsWith } from '../utils/string';
 import fetch from '../utils/fetch';
@@ -82,7 +81,7 @@ type Options = {
  * @param {number} [options.maxRetryCount] - The maximum number of times to retry the auth url
  */
 
-class AuthProvider {
+class AuthProvider extends MicroEmitter {
     private expiry = 0;
     private token: string | null = null;
     tokenRefreshUrl?: string;
@@ -105,11 +104,9 @@ class AuthProvider {
     EVENT_TOKEN_RECEIVED = 'tokenReceived';
     // Type of event that occurs when the token refresh fails.
     EVENT_TOKEN_REFRESH_FAILED = 'tokenRefreshFailed';
-    events: IEventEmitter;
 
     constructor(options: Options) {
-        this.events = new MicroEmitter();
-
+        super();
         if (!options?.token && !options?.tokenRefreshUrl) {
             throw new Error('No token supplied and no way to get it');
         }
@@ -167,7 +164,7 @@ class AuthProvider {
         if (this.tokenRefreshTimer) {
             clearTimeout(this.tokenRefreshTimer);
         }
-        this.events.trigger(this.EVENT_TOKEN_REFRESH);
+        this.trigger(this.EVENT_TOKEN_REFRESH);
         if (this.tokenRefreshUrl) {
             this.fetchToken(this.tokenRefreshUrl);
         }
@@ -207,7 +204,7 @@ class AuthProvider {
         );
         this.set(token, expiry);
         this.createTimerForNextToken();
-        this.events.trigger(this.EVENT_TOKEN_RECEIVED, token, expiry);
+        this.trigger(this.EVENT_TOKEN_RECEIVED, token, expiry);
     };
 
     // Fix me remove any
@@ -232,7 +229,7 @@ class AuthProvider {
         }
 
         if (isAuthenticationError) {
-            this.events.trigger(this.EVENT_TOKEN_REFRESH_FAILED);
+            this.trigger(this.EVENT_TOKEN_REFRESH_FAILED);
             this.state = STATE_FAILED;
             return;
         }
@@ -247,7 +244,7 @@ class AuthProvider {
             );
         } else {
             this.state = STATE_FAILED;
-            this.events.trigger(this.EVENT_TOKEN_REFRESH_FAILED);
+            this.trigger(this.EVENT_TOKEN_REFRESH_FAILED);
         }
     };
 

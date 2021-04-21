@@ -79,16 +79,10 @@ describe('openapi AuthProvider', () => {
             authProvider = new AuthProvider(options);
 
             const tokenRefreshSpy = jest.fn().mockName('tokenRefresh listener');
-            authProvider.events.on(
-                authProvider.EVENT_TOKEN_REFRESH,
-                tokenRefreshSpy,
-            );
+            authProvider.on(authProvider.EVENT_TOKEN_REFRESH, tokenRefreshSpy);
             tick(60000);
 
-            authProvider.events.off(
-                authProvider.EVENT_TOKEN_REFRESH,
-                tokenRefreshSpy,
-            );
+            authProvider.off(authProvider.EVENT_TOKEN_REFRESH, tokenRefreshSpy);
             expect(tokenRefreshSpy).toBeCalledTimes(1);
 
             authProvider.set('TOK3', relativeDate(0));
@@ -109,11 +103,11 @@ describe('openapi AuthProvider', () => {
             const tokenRefreshFailSpy = jest
                 .fn()
                 .mockName('tokenRefreshFail listener');
-            authProvider.events.on(
+            authProvider.on(
                 authProvider.EVENT_TOKEN_REFRESH_FAILED,
                 tokenRefreshFailSpy,
             );
-            authProvider.events.on(
+            authProvider.on(
                 authProvider.EVENT_TOKEN_RECEIVED,
                 tokenReceivedSpy,
             );
@@ -121,11 +115,11 @@ describe('openapi AuthProvider', () => {
 
             fetch.resolve('200', { token: 'TOK3', expiry: 60 });
             setTimeout(function () {
-                authProvider.events.off(
+                authProvider.off(
                     authProvider.EVENT_TOKEN_REFRESH_FAILED,
                     tokenRefreshFailSpy,
                 );
-                authProvider.events.off(
+                authProvider.off(
                     authProvider.EVENT_TOKEN_RECEIVED,
                     tokenReceivedSpy,
                 );
@@ -156,11 +150,11 @@ describe('openapi AuthProvider', () => {
                 const tokenReceivedSpy = jest
                     .fn()
                     .mockName('tokenReceived listener');
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_REFRESH_FAILED,
                     tokenRefreshFailSpy,
                 );
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_RECEIVED,
                     tokenReceivedSpy,
                 );
@@ -187,11 +181,11 @@ describe('openapi AuthProvider', () => {
                 const tokenReceivedSpy = jest
                     .fn()
                     .mockName('tokenReceived listener');
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_REFRESH_FAILED,
                     tokenRefreshFailSpy,
                 );
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_RECEIVED,
                     tokenReceivedSpy,
                 );
@@ -218,22 +212,22 @@ describe('openapi AuthProvider', () => {
                 const tokenReceivedSpy = jest
                     .fn()
                     .mockName('tokenReceived listener');
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_REFRESH_FAILED,
                     tokenRefreshFailSpy,
                 );
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_RECEIVED,
                     tokenReceivedSpy,
                 );
                 tick(60000);
                 fetch.resolve(403, { error: 'forbidden' });
                 setTimeout(function () {
-                    authProvider.events.off(
+                    authProvider.off(
                         authProvider.EVENT_TOKEN_REFRESH_FAILED,
                         tokenRefreshFailSpy,
                     );
-                    authProvider.events.off(
+                    authProvider.off(
                         authProvider.EVENT_TOKEN_RECEIVED,
                         tokenReceivedSpy,
                     );
@@ -258,11 +252,11 @@ describe('openapi AuthProvider', () => {
                 const tokenReceivedSpy = jest
                     .fn()
                     .mockName('tokenReceived listener');
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_REFRESH_FAILED,
                     tokenRefreshFailSpy,
                 );
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_RECEIVED,
                     tokenReceivedSpy,
                 );
@@ -299,11 +293,11 @@ describe('openapi AuthProvider', () => {
                 const tokenReceivedSpy = jest
                     .fn()
                     .mockName('tokenReceived listener');
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_REFRESH_FAILED,
                     tokenRefreshFailSpy,
                 );
-                authProvider.events.on(
+                authProvider.on(
                     authProvider.EVENT_TOKEN_RECEIVED,
                     tokenReceivedSpy,
                 );

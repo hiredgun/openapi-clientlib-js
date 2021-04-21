@@ -167,12 +167,12 @@ describe('openapi Streaming', () => {
             const streaming = new Streaming(transport, 'testUrl', authProvider);
 
             expect(mockConnection.start).toHaveBeenCalledTimes(0);
-            expect(authProvider.events.one).toHaveBeenCalledTimes(1);
+            expect(authProvider.one).toHaveBeenCalledTimes(1);
 
             // change the token and expiry and call the one callback
             authProvider.getExpiry.mockImplementation(() => Date.now() + 1000);
             authProvider.getToken.mockImplementation(() => 'Bearer NEWTOKEN');
-            authProvider.events.one.mock.calls[0][1]();
+            authProvider.one.mock.calls[0][1]();
 
             expect(mockConnection.start).toHaveBeenCalledTimes(1);
             expect(streaming.getQuery()).toEqual(
@@ -333,7 +333,7 @@ describe('openapi Streaming', () => {
             subscription.reset = jest.fn().mockName('reset');
             subscription.dispose = jest.fn().mockName('dispose');
             stateChangedSpy = jest.fn().mockName('stateChanged');
-            streaming.events.on('connectionStateChanged', stateChangedSpy);
+            streaming.on('connectionStateChanged', stateChangedSpy);
             return streaming;
         }
 
@@ -792,10 +792,7 @@ describe('openapi Streaming', () => {
 
         it('handles connection slow events', () => {
             const connectionSlowSpy = jest.fn().mockName('spyOnConnectionSlow');
-            streaming.events.on(
-                streaming.EVENT_CONNECTION_SLOW,
-                connectionSlowSpy,
-            );
+            streaming.on(streaming.EVENT_CONNECTION_SLOW, connectionSlowSpy);
             connectionSlowCallback();
             expect(connectionSlowSpy.mock.calls.length).toEqual(1);
         });
@@ -889,7 +886,7 @@ describe('openapi Streaming', () => {
                 .fn()
                 .mockName('spyOnDisconnectRequested');
 
-            streaming.events.on(
+            streaming.on(
                 streaming.EVENT_DISCONNECT_REQUESTED,
                 disconnectRequestedSpy,
             );
@@ -1538,7 +1535,7 @@ describe('openapi Streaming', () => {
             });
 
             // mock fallback implementation
-            streaming.events.on(streaming.EVENT_STREAMING_FAILED, () => {
+            streaming.on(streaming.EVENT_STREAMING_FAILED, () => {
                 streaming.resetStreaming('newStreamingUrl', {
                     transportTypes: [streamingTransports.PLAIN_WEBSOCKETS],
                 });

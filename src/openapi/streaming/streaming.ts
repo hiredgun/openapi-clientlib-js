@@ -1,5 +1,4 @@
 import MicroEmitter from '../../micro-emitter';
-import type { IEventEmitter } from '../../micro-emitter';
 import log from '../../log';
 import { padLeft } from '../../utils/string';
 import Subscription from './subscription';
@@ -96,7 +95,7 @@ export function findRetryDelay(
  * @param {Array.<string>} [options.transportTypes=['plainWebSockets', 'webSockets', 'longPolling']] - The transports to be used in order by signal-r.
  * @param {Object} [options.messageProtocol={}] - Message serialization protocol used by signalr core
  */
-class Streaming {
+class Streaming extends MicroEmitter {
     /**
      * Event that occurs when the connection state changes.
      */
@@ -175,7 +174,6 @@ class Streaming {
     retryDelayLevels?: RetryDelayLevel[];
     reconnectTimer?: number;
     disposed = false;
-    events: IEventEmitter;
 
     constructor(
         // FIXME any
@@ -184,22 +182,18 @@ class Streaming {
         authProvider: AuthProvider,
         options?: Partial<StreamingConfigurableOptions>,
     ) {
-        this.events = new MicroEmitter();
-
+        super();
         this.baseUrl = baseUrl;
         this.authProvider = authProvider;
         this.transport = transport;
 
         this.setOptions({ ...DEFAULT_STREAMING_OPTIONS, ...options });
 
-        this.authProvider.events.on(
-            this.authProvider.EVENT_TOKEN_RECEIVED,
-            () => {
-                // Forcing authorization request upon new token arrival.
-                const forceAuthorizationRequest = true;
-                this.updateConnectionQuery(forceAuthorizationRequest);
-            },
-        );
+        this.authProvider.on(this.authProvider.EVENT_TOKEN_RECEIVED, () => {
+            // Forcing authorization request upon new token arrival.
+            const forceAuthorizationRequest = true;
+            this.updateConnectionQuery(forceAuthorizationRequest);
+        });
 
         this.orphanFinder = new StreamingOrphanFinder(
             this.subscriptions,
@@ -287,7 +281,7 @@ class Streaming {
 
         // Let consumer setup event handlers in case of steaming failure during initial setup
         setTimeout(() => {
-            this.events.trigger(this.EVENT_STREAMING_FAILED);
+            this.trigger(this.EVENT_STREAMING_FAILED);
         });
     }
 
@@ -328,7 +322,7 @@ class Streaming {
             // fetching a new token
             const transport = this.getActiveTransportName();
             this.authProvider.refreshOpenApiToken();
-            this.authProvider.events.one(
+            this.authProvider.one(
                 this.authProvider.EVENT_TOKEN_RECEIVED,
                 () => {
                     // FIXME looks like this block is currently never executed since
@@ -428,10 +422,7 @@ class Streaming {
             },
         );
 
-        this.events.trigger(
-            this.EVENT_CONNECTION_STATE_CHANGED,
-            this.connectionState,
-        );
+        this.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
 
         if (this.disposed || this.paused) {
             return;
@@ -496,10 +487,7 @@ class Streaming {
 
         log.info(LOG_AREA, 'Connection started');
 
-        this.events.trigger(
-            this.EVENT_CONNECTION_STATE_CHANGED,
-            this.connectionState,
-        );
+        this.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
     }
 
     // @ts-expect-error FIXME once transports are migrated to TS
@@ -735,7 +723,7 @@ class Streaming {
             this.subscriptions[i].onConnectionUnavailable();
         }
 
-        this.events.trigger(this.EVENT_DISCONNECT_REQUESTED);
+        this.trigger(this.EVENT_DISCONNECT_REQUESTED);
     }
 
     private handleControlMessageReconnect() {
@@ -765,7 +753,7 @@ class Streaming {
      */
     private onConnectionSlow() {
         log.info(LOG_AREA, 'Connection is slow');
-        this.events.trigger(this.EVENT_CONNECTION_SLOW);
+        this.trigger(this.EVENT_CONNECTION_SLOW);
     }
 
     /**

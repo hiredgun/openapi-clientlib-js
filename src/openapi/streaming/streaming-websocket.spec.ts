@@ -188,7 +188,7 @@ describe('openapi Streaming', () => {
             subscription.reset = jest.fn().mockName('reset');
             subscription.dispose = jest.fn().mockName('dispose');
             stateChangedSpy = jest.fn().mockName('stateChanged');
-            streaming.events.on('connectionStateChanged', stateChangedSpy);
+            streaming.on('connectionStateChanged', stateChangedSpy);
             return streaming;
         }
 
@@ -536,10 +536,7 @@ describe('openapi Streaming', () => {
 
         it('handles connection slow events', () => {
             const connectionSlowSpy = jest.fn().mockName('spyOnConnectionSlow');
-            streaming.events.on(
-                streaming.EVENT_CONNECTION_SLOW,
-                connectionSlowSpy,
-            );
+            streaming.on(streaming.EVENT_CONNECTION_SLOW, connectionSlowSpy);
             connectionSlowCallback();
             expect(connectionSlowSpy.mock.calls.length).toEqual(1);
         });
