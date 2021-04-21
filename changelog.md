@@ -1,6 +1,7 @@
 ### v9.0.0
 
 #### Breaking
+- micro-emitter becomes a class and needs to be instantiated instead of mixed into an existing object.
 - AuthProvider/Streaming classes don't expose event emitter API directly, it is now possible to access event API through the `events` property.
 
 ### v8.4.0
