@@ -104,15 +104,10 @@ describe('openapi Streaming', () => {
     function mockSubscription() {
         type Callback = (state: SubscriptionState) => void;
 
-        // function changeState(state) {
-        //     this.stateChangedCallback.forEach((callback) => callback(state));
-        // }
-
         function addStateChangedCallback(
             this: ReturnType<typeof mockSubscription>,
             callback: Callback,
         ) {
-            // @ts-expect-error
             this.stateChangedCallback.push(callback);
         }
 
@@ -120,16 +115,14 @@ describe('openapi Streaming', () => {
             this: ReturnType<typeof mockSubscription>,
             callback: Callback,
         ) {
-            // @ts-expect-error
             const index = this.stateChangedCallback.indexOf(callback);
             if (index > -1) {
                 this.stateChangedCallback.splice(index, 1);
             }
         }
 
-        const mock = {
+        const mock: Record<string, any> = {
             stateChangedCallback: [],
-            // changeState,
             onStreamingData: jest.fn(),
             onHeartbeat: jest.fn(),
             onConnectionUnavailable: jest.fn(),
@@ -772,7 +765,7 @@ describe('openapi Streaming', () => {
 
             const subscription = mockSubscription();
             subscription.referenceId = 'MySpy';
-            // @ts-expect-error
+            // @ts-expect-error using mocked  subscription
             streaming.subscriptions.push(subscription);
 
             const data1 = {}; // using this to throw an exception, but could be anything
@@ -804,7 +797,7 @@ describe('openapi Streaming', () => {
         });
         it('handles signal-r log calls', () => {
             const logDebugSpy = jest.spyOn(log, 'debug');
-            // @ts-expect-error
+            // @ts-expect-error TS can't see that log property is added to the connection
             mockConnection.log('my message');
             expect(logDebugSpy.mock.calls.length).toEqual(1);
         });
@@ -942,12 +935,15 @@ describe('openapi Streaming', () => {
 
             const subscription = mockSubscription();
             subscription.referenceId = 'MySpy';
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.subscriptions.push(subscription);
             expect(mockConnection.start.mock.calls.length).toEqual(1);
             mockConnection.start.mockClear();
 
-            jest.spyOn(streaming.orphanFinder, 'stop');
+            const orphanFinderStopMethodSpy = jest.spyOn(
+                streaming.orphanFinder,
+                'stop',
+            );
 
             streaming.dispose();
 
@@ -963,8 +959,8 @@ describe('openapi Streaming', () => {
             expect(transport.delete.mock.calls[0][2]).toEqual({
                 contextId: '0000000000',
             });
-            // @ts-expect-error
-            expect(streaming.orphanFinder.stop.mock.calls.length).toEqual(1);
+
+            expect(orphanFinderStopMethodSpy.mock.calls.length).toEqual(1);
 
             stateChangedCallback({ newState: 4 /* disconnected */ });
 
@@ -978,20 +974,20 @@ describe('openapi Streaming', () => {
 
             const subscription = mockSubscription();
             subscription.referenceId = 'MySpy';
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.subscriptions.push(subscription);
             const subscription2 = mockSubscription();
             subscription2.referenceId = 'MySpy';
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.subscriptions.push(subscription2);
 
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.disposeSubscription(subscription);
 
             expect(subscription.onUnsubscribe.mock.calls.length).toEqual(1);
             expect(subscription.dispose.mock.calls.length).toEqual(1);
             expect(streaming.subscriptions.length).toEqual(1);
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.disposeSubscription(subscription2);
 
             expect(subscription2.onUnsubscribe.mock.calls.length).toEqual(1);
@@ -999,7 +995,7 @@ describe('openapi Streaming', () => {
             expect(streaming.subscriptions.length).toEqual(0);
 
             // copes with being called twice
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.disposeSubscription(subscription2);
 
             expect(subscription2.onUnsubscribe.mock.calls.length).toEqual(2);
@@ -1015,10 +1011,10 @@ describe('openapi Streaming', () => {
 
             const subscription = mockSubscription();
             subscription.referenceId = 'MySpy';
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.subscriptions.push(subscription);
             expect(subscription.reset.mock.calls.length).toEqual(0);
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.orphanFinder.onOrphanFound(subscription);
 
             expect(subscription.reset.mock.calls.length).toEqual(1);
@@ -1030,11 +1026,11 @@ describe('openapi Streaming', () => {
 
             const subscription = mockSubscription();
             subscription.referenceId = 'MySpy';
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.subscriptions.push(subscription);
             expect(subscription.onSubscribe.mock.calls.length).toEqual(0);
 
-            // @ts-expect-error
+            // @ts-expect-error using mocked subscription
             streaming.subscribe(subscription);
 
             expect(subscription.onSubscribe.mock.calls.length).toEqual(1);
@@ -1048,11 +1044,13 @@ describe('openapi Streaming', () => {
                 {},
             );
 
-            jest.spyOn(streaming.orphanFinder, 'update');
+            const orphanFinderUpdateMethodSpy = jest.spyOn(
+                streaming.orphanFinder,
+                'update',
+            );
             subscription.onSubscriptionCreated?.();
 
-            // @ts-expect-error
-            expect(streaming.orphanFinder.update.mock.calls.length).toEqual(1);
+            expect(orphanFinderUpdateMethodSpy.mock.calls.length).toEqual(1);
         });
 
         it('passes on unsubscribe calls', () => {
