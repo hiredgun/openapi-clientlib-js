@@ -3,9 +3,9 @@ import log from '../log';
 import { startsWith } from '../utils/string';
 import fetch from '../utils/fetch';
 import type {
-    HTTPMethodSuccessResult,
-    HTTPMethods,
-    HTTPMethodFailureResult,
+    OAPICallResult,
+    HTTPMethodType,
+    NetworkFailure,
 } from './transport/types';
 
 const LOG_AREA = 'AuthProvider';
@@ -53,7 +53,7 @@ type Options = {
     tokenRefreshUrl?: string;
     tokenRefreshHeaders?: Record<string, string>;
     tokenRefreshCredentials?: RequestCredentials;
-    tokenRefreshMethod?: HTTPMethods;
+    tokenRefreshMethod?: HTTPMethodType;
     tokenRefreshPropertyNameToken?: string;
     tokenRefreshPropertyNameExpires?: string;
     tokenRefreshMarginMs?: number;
@@ -94,7 +94,7 @@ class AuthProvider extends MicroEmitter {
     tokenRefreshUrl?: string;
     tokenRefreshHeaders?: Record<string, string> = {};
     tokenRefreshCredentials: RequestCredentials = DEFAULT_TOKEN_REFRESH_CREDENTIALS;
-    tokenRefreshMethod: HTTPMethods = DEFAULT_TOKEN_REFRESH_METHOD;
+    tokenRefreshMethod: HTTPMethodType = DEFAULT_TOKEN_REFRESH_METHOD;
     tokenRefreshPropertyNameToken = DEFAULT_TOKEN_REFRESH_PROPERTY_NAME_TOKEN;
     tokenRefreshPropertyNameExpires = DEFAULT_TOKEN_REFRESH_PROPERTY_NAME_EXPIRES;
     tokenRefreshMarginMs = DEFAULT_TOKEN_REFRESH_MARGIN_MS;
@@ -205,7 +205,7 @@ class AuthProvider extends MicroEmitter {
         return false;
     }
 
-    private onApiTokenReceived = (result: HTTPMethodSuccessResult) => {
+    private onApiTokenReceived = (result: OAPICallResult) => {
         this.state = STATE_WAITING;
         this.retries = 0;
 
@@ -228,7 +228,9 @@ class AuthProvider extends MicroEmitter {
         this.trigger(this.EVENT_TOKEN_RECEIVED, token, expiry);
     };
 
-    private onApiTokenReceiveFail = (result: HTTPMethodFailureResult) => {
+    private onApiTokenReceiveFail = (
+        result: OAPICallResult | NetworkFailure,
+    ) => {
         const currentExpiry = this.getExpiry();
         const isAuthenticationError =
             result && (result.status === 401 || result.status === 403);

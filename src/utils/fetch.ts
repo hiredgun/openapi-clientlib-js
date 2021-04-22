@@ -1,8 +1,8 @@
 ﻿import log from '../log';
 import type {
-    HTTPMethodSuccessResult,
-    HTTPMethodFailureResult,
-    HTTPMethods,
+    OAPICallResult,
+    HTTPMethodType,
+    NetworkFailure,
 } from '../openapi/transport/types';
 
 interface Options {
@@ -47,7 +47,7 @@ export function convertFetchReject(
         error,
     });
 
-    const networkError: HTTPMethodFailureResult = {
+    const networkError: NetworkFailure = {
         message: error?.message ? error.message : error,
         isNetworkError: true,
     };
@@ -67,7 +67,7 @@ export function convertFetchSuccess(
 ) {
     clearTimeout(timerId);
 
-    let convertedPromise: Promise<HTTPMethodSuccessResult>;
+    let convertedPromise: Promise<OAPICallResult>;
 
     const contentType = result.headers.get('content-type');
 
@@ -187,7 +187,7 @@ export function convertFetchSuccess(
 }
 
 function getBody(
-    method: HTTPMethods,
+    method: HTTPMethodType,
     options?: Options,
 ): BodyInit | Record<string, unknown> | undefined {
     // If PATCH without body occurs, create empty payload.
@@ -218,7 +218,7 @@ function getBody(
  *                             "same-origin" will include the cookies if on the same domain (this is the XmlHttpRequest default)
  *                             "include" will always include the cookies.
  */
-function localFetch(method: HTTPMethods, url: string, options?: Options) {
+function localFetch(method: HTTPMethodType, url: string, options?: Options) {
     let body = getBody(method, options);
     const headers = options?.headers || {};
     const cache = options?.cache;

@@ -8,10 +8,10 @@ import fetch from '../../utils/fetch';
 import { getRequestId } from '../../utils/request';
 import { shouldUseCloud } from './options';
 import type {
-    Options,
+    TransportOptions,
     TransportCoreOptions,
     Services,
-    HTTPMethods,
+    HTTPMethodType,
 } from './types';
 import TransportBase from './trasportBase';
 import type { StringTemplateArgs } from '../../utils/string';
@@ -43,7 +43,7 @@ class TransportCore extends TransportBase {
     useXHttpMethodOverride = false;
     fetch = fetch;
 
-    constructor(baseUrl?: string | null, options?: Options) {
+    constructor(baseUrl?: string | null, options?: TransportOptions) {
         super();
         if (!baseUrl) {
             throw new Error('Missing required parameter: baseUrl');
@@ -59,7 +59,7 @@ class TransportCore extends TransportBase {
 
     dispose() {}
 
-    prepareTransportMethod(method: HTTPMethods) {
+    prepareTransportMethod(method: HTTPMethodType) {
         return (
             servicePath?: string,
             urlTemplate?: string,

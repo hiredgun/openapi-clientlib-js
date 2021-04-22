@@ -1,19 +1,13 @@
-/**
- * @module saxo/openapi/transport/auth
- * @ignore
- */
-
-// -- Local variables section --
-
 import log from '../../log';
 import type AuthProvider from '../authProvider';
 import TransportCore from './core';
 import TransportBase from './trasportBase';
 import type {
-    Options,
-    HTTPMethods,
+    TransportOptions,
+    HTTPMethodType,
     TransportCoreOptions,
-    HTTPMethodSuccessResult,
+    OAPICallResult,
+    NetworkFailure,
 } from './types';
 import type { StringTemplateArgs } from '../../utils/string';
 
@@ -53,7 +47,7 @@ class TransportAuth extends TransportBase {
     constructor(
         baseUrl: string,
         authProvider: AuthProvider,
-        options?: Options,
+        options?: TransportOptions,
     ) {
         super();
         if (!authProvider) {
@@ -73,8 +67,7 @@ class TransportAuth extends TransportBase {
     private onTransportError(
         oldTokenExpiry: number,
         timeRequested: number,
-        // fix-me remove any
-        result: any,
+        result: OAPICallResult | NetworkFailure,
     ): never {
         if (result?.status === 401) {
             this.addAuthError(result.url, oldTokenExpiry, timeRequested);
@@ -105,13 +98,13 @@ class TransportAuth extends TransportBase {
         throw result;
     }
 
-    prepareTransportMethod(method: HTTPMethods) {
+    prepareTransportMethod(method: HTTPMethodType) {
         return (
             servicePath?: string,
             urlTemplate?: string,
             templateArgs?: StringTemplateArgs,
             options?: TransportCoreOptions,
-        ): Promise<HTTPMethodSuccessResult> => {
+        ): Promise<OAPICallResult> => {
             const newOptions = {
                 ...options,
                 headers: {

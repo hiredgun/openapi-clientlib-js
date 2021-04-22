@@ -1,8 +1,8 @@
 import type { StringTemplateArgs } from '../../utils/string';
 
-export type HTTPMethods = 'get' | 'put' | 'post' | 'delete' | 'patch' | 'options' | 'head';
+export type HTTPMethodType = 'get' | 'put' | 'post' | 'delete' | 'patch' | 'options' | 'head';
 
-export type APIStatusCode = 401 | 404 | 200 | 201 | 500;
+export type HTTPStatusCode = 401 | 404 | 200 | 201 | 500;
 
 export type UseCloud = {
     useCloud?: boolean | string | (() => boolean | string);
@@ -11,7 +11,7 @@ export type UseCloud = {
 export type Services = {
     [k in string]: UseCloud;
 };
-export interface Options {
+export interface TransportOptions {
     authErrorsDebouncePeriod?: number;
     language?: string;
     services?: Services;
@@ -38,18 +38,20 @@ export interface TransportCoreOptions {
 }
 
 // eslint-disable-next-line max-len
-export type MethodInputArgs = [string | undefined, string | undefined, StringTemplateArgs | undefined, TransportCoreOptions | undefined];
+export type HTTPMethodInputArgs = [string | undefined, string | undefined, StringTemplateArgs | undefined, TransportCoreOptions | undefined];
 
-export interface HTTPMethodSuccessResult {
+export interface OAPICallResult {
     response?: string | Blob | Record<string, unknown>;
     status: number;
     headers: Headers;
     size: number;
     url: string;
     responseType?: string;
+    isNetworkError?: never;
 }
 
-export interface HTTPMethodFailureResult extends Partial<HTTPMethodSuccessResult> {
+export interface NetworkFailure {
     message?: string | Error;
-    isNetworkError?: boolean;
+    isNetworkError: true;
+    status?: never;
 }

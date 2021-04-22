@@ -1,15 +1,15 @@
 ﻿import type {
     APIResponse,
-    MethodInputArgs,
-    HTTPMethods,
-    HTTPMethodSuccessResult,
+    HTTPMethodInputArgs,
+    HTTPMethodType,
+    OAPICallResult,
 } from './types';
 import type TransportCore from './core';
 import TransportBase from './trasportBase';
 
 interface TransportCall {
-    method: HTTPMethods;
-    args: MethodInputArgs;
+    method: HTTPMethodType;
+    args: HTTPMethodInputArgs;
     resolve: (value?: any) => void;
     reject: (value?: any) => void;
     retryCount: number;
@@ -65,28 +65,26 @@ class TransportRetry extends TransportBase {
         this.transport = transport;
     }
 
-    prepareTransportMethod(method: HTTPMethods) {
-        return (...args: MethodInputArgs) => {
+    prepareTransportMethod(method: HTTPMethodType) {
+        return (...args: HTTPMethodInputArgs) => {
             // checking if http method call should be handled by RetryTransport
             if (
                 this.methods[method] &&
                 (this.methods[method].retryLimit > 0 ||
                     this.methods[method].retryTimeouts)
             ) {
-                return new Promise<HTTPMethodSuccessResult>(
-                    (resolve, reject) => {
-                        const transportCall = {
-                            method,
-                            args,
-                            resolve,
-                            reject,
-                            retryCount: 0,
-                            retryTimer: null,
-                        };
+                return new Promise<OAPICallResult>((resolve, reject) => {
+                    const transportCall = {
+                        method,
+                        args,
+                        resolve,
+                        reject,
+                        retryCount: 0,
+                        retryTimer: null,
+                    };
 
-                        this.sendTransportCall(transportCall);
-                    },
-                );
+                    this.sendTransportCall(transportCall);
+                });
             }
             // calls underlying transport http method
             return this.transport[method](...args);

@@ -1,39 +1,39 @@
 import type {
-    HTTPMethodSuccessResult,
-    HTTPMethods,
+    OAPICallResult,
+    HTTPMethodType,
     TransportCoreOptions,
 } from './types';
 import type { StringTemplateArgs } from '../../utils/string';
 
-type MethodReturn = (
+type HTTPMethod = (
     servicePath?: string,
     urlTemplate?: string,
     templateArgs?: StringTemplateArgs,
     options?: TransportCoreOptions,
-) => Promise<HTTPMethodSuccessResult>;
+) => Promise<OAPICallResult>;
 
 export interface ITransport {
     dispose: () => void;
-    get: MethodReturn;
-    post: MethodReturn;
-    put: MethodReturn;
-    delete: MethodReturn;
-    patch: MethodReturn;
-    head: MethodReturn;
-    options: MethodReturn;
+    get: HTTPMethod;
+    post: HTTPMethod;
+    put: HTTPMethod;
+    delete: HTTPMethod;
+    patch: HTTPMethod;
+    head: HTTPMethod;
+    options: HTTPMethod;
 }
 
 abstract class TransportBase implements ITransport {
     abstract dispose(): void;
 
     abstract prepareTransportMethod(
-        method: HTTPMethods,
+        method: HTTPMethodType,
     ): (
         servicePath?: string,
         urlTemplate?: string,
         templateArgs?: StringTemplateArgs,
         options?: TransportCoreOptions,
-    ) => Promise<HTTPMethodSuccessResult>;
+    ) => Promise<OAPICallResult>;
 
     get = this.prepareTransportMethod('get');
     post = this.prepareTransportMethod('post');
