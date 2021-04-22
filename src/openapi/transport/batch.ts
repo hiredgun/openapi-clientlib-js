@@ -6,29 +6,23 @@ import log from '../../log';
 import { shouldUseCloud } from './options';
 import type { QueueItem } from './queue';
 import TransportQueue from './queue';
-import type { Services, TransportOptions } from './types';
+import type {
+    NetworkFailure,
+    OAPICallResult,
+    Services,
+    TransportOptions,
+} from './types';
 import type { ITransport } from './trasportBase';
 
 const URLRegex = /((https?:)?\/\/)?[^/]+(.*)/i;
 
 const LOG_AREA = 'TransportBatch';
 
-type BatchResult = {
-    response?: string;
-    status: number;
-    headers: {
-        get: (key: string) => string;
-    };
-    size: number;
-    url: string;
-    responseType?: string;
-    isNetworkError?: boolean;
-};
-
-function getParentRequestId(batchResult: BatchResult) {
+function getParentRequestId(batchResult: OAPICallResult) {
     let parentRequestId = 0;
 
     if (batchResult.headers) {
+        // @ts-expect-error expect invalid input, NaN handled in the next line
         parentRequestId = parseInt(batchResult.headers.get('x-request-id'), 10);
         parentRequestId = isNaN(parentRequestId) ? 0 : parentRequestId;
     }
@@ -97,7 +91,7 @@ class TransportBatch extends TransportQueue {
 
     private batchCallFailure = (
         callList: QueueItem[],
-        batchResponse: BatchResult,
+        batchResponse: OAPICallResult | NetworkFailure,
     ) => {
         const isAuthFailure = batchResponse && batchResponse.status === 401;
         const isNetworkError =
@@ -124,7 +118,7 @@ class TransportBatch extends TransportQueue {
 
     private batchCallSuccess = (
         callList: QueueItem[],
-        batchResult: BatchResult,
+        batchResult: OAPICallResult,
     ) => {
         // Previously occurred due to a bug in the auth transport
         if (!(batchResult && batchResult.response)) {
@@ -135,7 +129,11 @@ class TransportBatch extends TransportQueue {
 
         const parentRequestId = getParentRequestId(batchResult);
 
-        const results = parseBatch(batchResult.response, parentRequestId);
+        // expecting batch call response to be string
+        const results = parseBatch(
+            batchResult.response as string,
+            parentRequestId,
+        );
 
         for (let i = 0; i < callList.length; i++) {
             const call = callList[i];
@@ -231,7 +229,6 @@ class TransportBatch extends TransportQueue {
             });
         }
 
-        // @ts-ignore
         const { body, boundary } = buildBatch(subRequests, this.host);
 
         const headers: Record<string, string> = {
@@ -248,10 +245,10 @@ class TransportBatch extends TransportQueue {
                 cache: false,
                 requestId: parentRequestId,
             })
-            .then((batchResult: BatchResult | undefined | unknown) =>
-                this.batchCallSuccess(callList, batchResult as BatchResult),
+            .then((batchResult: OAPICallResult) =>
+                this.batchCallSuccess(callList, batchResult),
             )
-            .catch((errorResponse: BatchResult) =>
+            .catch((errorResponse: OAPICallResult | NetworkFailure) =>
                 this.batchCallFailure(callList, errorResponse),
             );
     };

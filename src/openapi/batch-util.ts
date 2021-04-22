@@ -87,12 +87,12 @@ function parse(responseText: string, parentRequestId = 0) {
     return responseData;
 }
 
-type Request = {
+export interface BatchRequest {
     method: string;
     headers?: Record<string, string>;
     url: string;
     data?: string;
-};
+}
 
 /**
  * Builds up a string of the data for a batch request.
@@ -101,7 +101,7 @@ type Request = {
  * @param {string} host - The host of the sender.
  * @returns { body: string, boundary: string }
  */
-function build(subRequests: Request[], host: string) {
+function build(subRequests: BatchRequest[], host: string) {
     if (!subRequests || !host) {
         throw new Error(
             'Missing required parameters: batch build requires sub requests and host',
