@@ -41,6 +41,7 @@ class TransportCore extends TransportBase {
     services: Services = {};
     defaultCache = true;
     useXHttpMethodOverride = false;
+    fetch = fetch;
 
     constructor(baseUrl?: string | null, options?: Options) {
         super();
@@ -55,6 +56,8 @@ class TransportCore extends TransportBase {
 
         this.services = options?.services || {};
     }
+
+    dispose() {}
 
     prepareTransportMethod(method: HTTPMethods) {
         return (
@@ -492,10 +495,6 @@ class TransportCore extends TransportBase {
     setUseXHttpMethodOverride(useXHttpMethodOverride: boolean) {
         this.useXHttpMethodOverride = useXHttpMethodOverride;
     }
-
-    fetch = fetch;
-
-    dispose() {}
 }
 
 // -- Export section --

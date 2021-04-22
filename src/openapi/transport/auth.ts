@@ -9,8 +9,12 @@ import log from '../../log';
 import type AuthProvider from '../authProvider';
 import TransportCore from './core';
 import TransportBase from './trasportBase';
-import type { Options, HTTPMethods, TransportCoreOptions } from './types';
-import type { HTTPMethodResult } from './trasportBase';
+import type {
+    Options,
+    HTTPMethods,
+    TransportCoreOptions,
+    HTTPMethodSuccessResult,
+} from './types';
 import type { StringTemplateArgs } from '../../utils/string';
 
 const LOG_AREA = 'TransportAuth';
@@ -107,7 +111,7 @@ class TransportAuth extends TransportBase {
             urlTemplate?: string,
             templateArgs?: StringTemplateArgs,
             options?: TransportCoreOptions,
-        ): Promise<HTTPMethodResult> => {
+        ): Promise<HTTPMethodSuccessResult> => {
             const newOptions = {
                 ...options,
                 headers: {

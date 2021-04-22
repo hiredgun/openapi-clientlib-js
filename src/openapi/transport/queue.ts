@@ -9,8 +9,9 @@ import type {
     MethodInputArgs,
     TransportCoreOptions,
     APIStatusCode,
+    HTTPMethodSuccessResult,
 } from './types';
-import type { ITransport, HTTPMethodResult } from './trasportBase';
+import type { ITransport } from './trasportBase';
 import TransportBase from './trasportBase';
 import type { StringTemplateArgs } from '../../utils/string';
 
@@ -99,7 +100,7 @@ class TransportQueue extends TransportBase {
 
             const transportCallArguments = args;
 
-            return new Promise<HTTPMethodResult>((resolve, reject) => {
+            return new Promise<HTTPMethodSuccessResult>((resolve, reject) => {
                 const queueItem: QueueItem = {
                     method,
                     args: transportCallArguments,

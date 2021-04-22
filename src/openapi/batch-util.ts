@@ -1,21 +1,10 @@
-/**
- * @module saxo/openapi/batch-util
- * @ignore
- */
-
 import log from '../log';
 import { getRequestId, globalToLocalRequestId } from '../utils/request';
-
-// -- Local variables section --
 
 const requestRx = /X-Request-Id: ([0-9]+)/;
 const httpCodeRx = /HTTP\/1.1 ([0-9]+)/;
 
 const LOG_AREA = 'batch';
-
-// -- Local methods section --
-
-// -- Exported methods section --
 
 /**
  * Utilities to build and parse batch requests
@@ -98,14 +87,6 @@ function parse(responseText: string, parentRequestId = 0) {
     return responseData;
 }
 
-/**
- * Builds up a string of the data for a batch request.
- * @name saxo.openapi.batchUtil.build
- * @param {Array.<{method: string, headers: ?Object.<string, string>, url: string, data: ?string}>} subRequests - The sub requests of the batch.
- * @param {string} host - The host of the sender.
- * @returns { body: string, boundary: string }
- */
-
 type Request = {
     method: string;
     headers?: Record<string, string>;
@@ -113,6 +94,13 @@ type Request = {
     data?: string;
 };
 
+/**
+ * Builds up a string of the data for a batch request.
+ * @name saxo.openapi.batchUtil.build
+ * @param {Array.<{method: string, headers: ?Object.<string, string>, url: string, data: ?string}>} subRequests - The sub requests of the batch.
+ * @param {string} host - The host of the sender.
+ * @returns { body: string, boundary: string }
+ */
 function build(subRequests: Request[], host: string) {
     if (!subRequests || !host) {
         throw new Error(
@@ -167,7 +155,5 @@ function build(subRequests: Request[], host: string) {
         boundary: boundary.substr(2),
     };
 }
-
-// -- Export section --
 
 export { parse, build };

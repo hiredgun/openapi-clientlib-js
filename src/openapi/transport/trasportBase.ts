@@ -1,25 +1,18 @@
-import type { HTTPMethods, TransportCoreOptions } from './types';
+import type {
+    HTTPMethodSuccessResult,
+    HTTPMethods,
+    TransportCoreOptions,
+} from './types';
 import type { StringTemplateArgs } from '../../utils/string';
-
-export type HTTPMethodResult = {
-    response?: string | Blob | Record<string, unknown>;
-    status: number;
-    headers: Headers;
-    size: number;
-    url: string;
-    responseType?: string;
-    isNetworkError?: boolean;
-};
 
 type MethodReturn = (
     servicePath?: string,
     urlTemplate?: string,
     templateArgs?: StringTemplateArgs,
     options?: TransportCoreOptions,
-) => Promise<HTTPMethodResult>;
+) => Promise<HTTPMethodSuccessResult>;
 
 export interface ITransport {
-    prepareTransportMethod: (arg0: HTTPMethods) => MethodReturn;
     dispose: () => void;
     get: MethodReturn;
     post: MethodReturn;
@@ -40,7 +33,7 @@ abstract class TransportBase implements ITransport {
         urlTemplate?: string,
         templateArgs?: StringTemplateArgs,
         options?: TransportCoreOptions,
-    ) => Promise<HTTPMethodResult>;
+    ) => Promise<HTTPMethodSuccessResult>;
 
     get = this.prepareTransportMethod('get');
     post = this.prepareTransportMethod('post');

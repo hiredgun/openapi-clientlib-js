@@ -1,5 +1,9 @@
 ﻿import log from '../log';
-import type { HTTPMethods } from '../openapi/transport/types';
+import type {
+    HTTPMethodSuccessResult,
+    HTTPMethodFailureResult,
+    HTTPMethods,
+} from '../openapi/transport/types';
 
 interface Options {
     body?: BodyInit | Record<string, unknown>;
@@ -43,7 +47,7 @@ export function convertFetchReject(
         error,
     });
 
-    const networkError = {
+    const networkError: HTTPMethodFailureResult = {
         message: error?.message ? error.message : error,
         isNetworkError: true,
     };
@@ -63,14 +67,7 @@ export function convertFetchSuccess(
 ) {
     clearTimeout(timerId);
 
-    let convertedPromise: Promise<{
-        response?: string | Blob | Record<string, unknown>;
-        status: number;
-        headers: Headers;
-        size: number;
-        url: string;
-        responseType?: string;
-    }>;
+    let convertedPromise: Promise<HTTPMethodSuccessResult>;
 
     const contentType = result.headers.get('content-type');
 

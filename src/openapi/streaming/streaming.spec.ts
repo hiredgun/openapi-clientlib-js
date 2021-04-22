@@ -49,7 +49,7 @@ describe('openapi Streaming', () => {
         stop: jest.Mock;
     };
 
-    let transport: ReturnType<typeof mockTransport>;
+    let transport: any;
     let fetchMock: ReturnType<typeof mockFetch>;
 
     const legacySignalrConnectionState = {

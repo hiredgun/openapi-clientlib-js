@@ -3,7 +3,11 @@ import * as transportTypes from './transportTypes';
 import WebsocketTransport from './transport/websocket-transport';
 import SignalrTransport from './transport/signalr-transport';
 import SignalrCoreTransport from './transport/signalr-core-transport';
-import type { TransportTypes, ConnectionOptions } from './types';
+import type {
+    TransportTypes,
+    ConnectionOptions,
+    ConnectionState,
+} from './types';
 
 type Callback = (...args: unknown[]) => unknown | void;
 
@@ -71,7 +75,6 @@ class Connection {
     transports: any;
     state = STATE_CREATED;
     transportIndex: number | null = null;
-    // FIXME use correct type once migrated
     transport: any;
     unauthorizedCallback: Callback | undefined;
 
@@ -117,7 +120,7 @@ class Connection {
     }
 
     private ensureValidState = (
-        callback: Callback,
+        callback: (...args: any) => void,
         callbackType: string,
         ...args: unknown[]
     ) => {
@@ -231,7 +234,7 @@ class Connection {
         }
     }
 
-    setStateChangedCallback(callback: Callback) {
+    setStateChangedCallback(callback: (nextState: ConnectionState) => void) {
         if (this.transport) {
             this.stateChangedCallback = this.ensureValidState.bind(
                 this,

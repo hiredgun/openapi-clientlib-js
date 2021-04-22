@@ -8,12 +8,16 @@ import StreamingOrphanFinder from './orphan-finder';
 import Connection from './connection/connection';
 import * as connectionConstants from './connection/constants';
 import * as streamingTransports from './connection/transportTypes';
-import type { TransportTypes, ConnectionOptions } from './connection/types';
+import type {
+    TransportTypes,
+    ConnectionOptions,
+    ConnectionState,
+} from './connection/types';
 import type AuthProvider from '../authProvider';
 import type ParserBase from './parser/parser-base';
 import type { IHubProtocol } from '@microsoft/signalr';
+import type { ITransport } from '../transport/trasportBase';
 
-type ConnectionState = keyof typeof connectionConstants.READABLE_CONNECTION_STATE_MAP;
 export interface RetryDelayLevel {
     level: number;
     delay: number;
@@ -153,14 +157,12 @@ class Streaming extends MicroEmitter {
     connectionState: ConnectionState = this.CONNECTION_STATE_INITIALIZING;
     baseUrl: string;
     authProvider: AuthProvider;
-    // FIXME any
-    transport: any;
+    transport: ITransport;
     subscriptions: Subscription[] = [];
     isReset = false;
     paused = false;
     orphanFinder: StreamingOrphanFinder;
-    // FIXME any
-    connection: any;
+    connection!: Connection;
     connectionOptions: ConnectionOptions = {
         waitForPageLoad: false,
         transport: [
@@ -169,15 +171,14 @@ class Streaming extends MicroEmitter {
         ],
     };
     reconnecting = false;
-    contextId?: string;
+    contextId!: string;
     retryDelay = DEFAULT_CONNECT_RETRY_DELAY;
     retryDelayLevels?: RetryDelayLevel[];
     reconnectTimer?: number;
     disposed = false;
 
     constructor(
-        // FIXME any
-        transport: any,
+        transport: ITransport,
         baseUrl: string,
         authProvider: AuthProvider,
         options?: Partial<StreamingConfigurableOptions>,
@@ -761,7 +762,7 @@ class Streaming extends MicroEmitter {
      */
     private updateConnectionQuery(forceAuth = false) {
         this.connection.updateQuery(
-            this.authProvider.getToken(),
+            this.authProvider.getToken() as string, // assuming token is received at this point
             this.contextId,
             this.authProvider.getExpiry(),
             forceAuth,
@@ -961,7 +962,7 @@ class Streaming extends MicroEmitter {
         };
 
         const subscription = new Subscription(
-            this.contextId as string, // assuming contextId exists at this stage
+            this.contextId, // assuming contextId exists at this stage
             this.transport,
             servicePath,
             url,

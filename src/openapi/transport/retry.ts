@@ -1,12 +1,11 @@
-﻿/**
- * @module saxo/openapi/transport/retry
- * @ignore
- */
-
-import type { APIResponse, MethodInputArgs, HTTPMethods } from './types';
+﻿import type {
+    APIResponse,
+    MethodInputArgs,
+    HTTPMethods,
+    HTTPMethodSuccessResult,
+} from './types';
 import type TransportCore from './core';
 import TransportBase from './trasportBase';
-import type { HTTPMethodResult } from './trasportBase';
 
 interface TransportCall {
     method: HTTPMethods;
@@ -17,16 +16,8 @@ interface TransportCall {
     retryTimer: ReturnType<typeof setTimeout> | null;
 }
 
-// -- Local variables section --
-
-// -- Local methods section --
-
-// -- Exported methods section --
-
 /**
  * TransportRetry wraps a transport class to allow the retrying of failed transport calls, so the calls are resent after a timeout.
- * @class
- * @alias saxo.openapi.TransportRetry
  * @param {Transport} transport - The transport to wrap.
  * @param {object} [options] - Settings options. Define retry timeout, http methods to retry and max retry limit
  *      per http method type. If not given then calls will run with underlying transport without retry logic.
@@ -44,7 +35,6 @@ interface TransportCall {
  *      }
  * });
  */
-
 class TransportRetry extends TransportBase {
     retryTimeout = 0;
     methods: Record<string, any>;
@@ -83,18 +73,20 @@ class TransportRetry extends TransportBase {
                 (this.methods[method].retryLimit > 0 ||
                     this.methods[method].retryTimeouts)
             ) {
-                return new Promise<HTTPMethodResult>((resolve, reject) => {
-                    const transportCall = {
-                        method,
-                        args,
-                        resolve,
-                        reject,
-                        retryCount: 0,
-                        retryTimer: null,
-                    };
+                return new Promise<HTTPMethodSuccessResult>(
+                    (resolve, reject) => {
+                        const transportCall = {
+                            method,
+                            args,
+                            resolve,
+                            reject,
+                            retryCount: 0,
+                            retryTimer: null,
+                        };
 
-                    this.sendTransportCall(transportCall);
-                });
+                        this.sendTransportCall(transportCall);
+                    },
+                );
             }
             // calls underlying transport http method
             return this.transport[method](...args);
@@ -199,5 +191,4 @@ class TransportRetry extends TransportBase {
     }
 }
 
-// -- Export section --
 export default TransportRetry;

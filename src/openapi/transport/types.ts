@@ -39,3 +39,17 @@ export interface TransportCoreOptions {
 
 // eslint-disable-next-line max-len
 export type MethodInputArgs = [string | undefined, string | undefined, StringTemplateArgs | undefined, TransportCoreOptions | undefined];
+
+export interface HTTPMethodSuccessResult {
+    response?: string | Blob | Record<string, unknown>;
+    status: number;
+    headers: Headers;
+    size: number;
+    url: string;
+    responseType?: string;
+}
+
+export interface HTTPMethodFailureResult extends Partial<HTTPMethodSuccessResult> {
+    message?: string | Error;
+    isNetworkError?: boolean;
+}
