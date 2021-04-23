@@ -16,6 +16,20 @@ interface TransportCall {
     retryTimer: ReturnType<typeof setTimeout> | null;
 }
 
+interface RetryOptions {
+    retryTimeouts?: number[];
+    statuses?: number[];
+    retryNetworkError?: boolean;
+    retryLimit?: number;
+}
+
+type HTTPRequestRetryOptions = Partial<Record<HTTPMethodType, RetryOptions>>;
+
+interface Options {
+    retryTimeout: number;
+    methods?: HTTPRequestRetryOptions;
+}
+
 /**
  * TransportRetry wraps a transport class to allow the retrying of failed transport calls, so the calls are resent after a timeout.
  * @param {Transport} transport - The transport to wrap.
@@ -37,20 +51,14 @@ interface TransportCall {
  */
 class TransportRetry extends TransportBase {
     retryTimeout = 0;
-    methods: Record<string, any>;
+    methods: HTTPRequestRetryOptions;
     transport: TransportCore;
     failedCalls: TransportCall[] = [];
     individualFailedCalls: TransportCall[] = [];
     retryTimer: ReturnType<typeof setTimeout> | null = null;
     isDisposed = false;
 
-    constructor(
-        transport: TransportCore,
-        options?: {
-            retryTimeout: number;
-            methods?: Record<string, any>;
-        },
-    ) {
+    constructor(transport: TransportCore, options?: Options) {
         super();
         if (!transport) {
             throw new Error(
@@ -67,11 +75,14 @@ class TransportRetry extends TransportBase {
 
     prepareTransportMethod(method: HTTPMethodType) {
         return (...args: HTTPMethodInputArgs) => {
+            const methodRetryOptions = this.methods[method];
+
             // checking if http method call should be handled by RetryTransport
             if (
-                this.methods[method] &&
-                (this.methods[method].retryLimit > 0 ||
-                    this.methods[method].retryTimeouts)
+                methodRetryOptions &&
+                ((methodRetryOptions.retryLimit &&
+                    methodRetryOptions.retryLimit > 0) ||
+                    methodRetryOptions.retryTimeouts)
             ) {
                 return new Promise<OAPICallResult>((resolve, reject) => {
                     const transportCall = {
@@ -95,19 +106,22 @@ class TransportRetry extends TransportBase {
         this.transport[transportCall.method](...transportCall.args).then(
             transportCall.resolve,
             (response: APIResponse) => {
-                const callOptions = this.methods[transportCall.method];
+                const callOptions = this.methods[
+                    transportCall.method
+                ] as RetryOptions;
                 const isRetryForStatus =
-                    response &&
-                    response.status &&
-                    callOptions.statuses &&
-                    callOptions.statuses.indexOf(response.status) >= 0;
-                const isRetryRequest =
-                    response && response.isNetworkError
-                        ? callOptions.retryNetworkError
-                        : isRetryForStatus;
+                    response?.status &&
+                    callOptions?.statuses?.includes(response.status);
+
+                const isRetryRequest = response?.isNetworkError
+                    ? callOptions.retryNetworkError
+                    : isRetryForStatus;
+
                 const isWithinRetryLimitOption =
+                    callOptions.retryLimit &&
                     callOptions.retryLimit > 0 &&
                     transportCall.retryCount < callOptions.retryLimit;
+
                 const isWithinRetryTimeoutsOption =
                     callOptions.retryTimeouts &&
                     transportCall.retryCount < callOptions.retryTimeouts.length;
@@ -126,7 +140,7 @@ class TransportRetry extends TransportBase {
     };
 
     protected addFailedCall(transportCall: TransportCall) {
-        const callOptions = this.methods[transportCall.method];
+        const callOptions = this.methods[transportCall.method] as RetryOptions;
         if (
             callOptions.retryTimeouts &&
             callOptions.retryTimeouts.length > transportCall.retryCount

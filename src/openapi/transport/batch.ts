@@ -93,7 +93,7 @@ class TransportBatch extends TransportQueue {
         callList: QueueItem[],
         batchResponse: OAPICallResult | NetworkFailure,
     ) => {
-        const isAuthFailure = batchResponse && batchResponse.status === 401;
+        const isAuthFailure = batchResponse?.status === 401;
         const isNetworkError =
             !batchResponse ||
             // Some responses same to be in error but not have isNetworkError defined
@@ -272,5 +272,4 @@ class TransportBatch extends TransportQueue {
     }
 }
 
-// -- Export section --
 export default TransportBatch;
