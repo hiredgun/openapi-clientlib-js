@@ -5,7 +5,7 @@ import fetch from '../utils/fetch';
 import type {
     OAPICallResult,
     HTTPMethodType,
-    NetworkFailure,
+    NetworkError,
 } from '../utils/fetch';
 
 const LOG_AREA = 'AuthProvider';
@@ -228,9 +228,7 @@ class AuthProvider extends MicroEmitter {
         this.trigger(this.EVENT_TOKEN_RECEIVED, token, expiry);
     };
 
-    private onApiTokenReceiveFail = (
-        result: OAPICallResult | NetworkFailure,
-    ) => {
+    private onApiTokenReceiveFail = (result: OAPICallResult | NetworkError) => {
         const currentExpiry = this.getExpiry();
         const isAuthenticationError =
             result && (result.status === 401 || result.status === 403);

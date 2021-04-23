@@ -19,7 +19,7 @@ export interface OAPICallResult {
     isNetworkError?: never;
 }
 
-export interface NetworkFailure {
+export interface NetworkError {
     message?: string | Error;
     isNetworkError: true;
     status?: never;
@@ -67,7 +67,7 @@ export function convertFetchReject(
         error,
     });
 
-    const networkError: NetworkFailure = {
+    const networkError: NetworkError = {
         message: error?.message ? error.message : error,
         isNetworkError: true,
     };

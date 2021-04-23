@@ -7,7 +7,7 @@ import type { StringTemplateArgs } from '../../utils/string';
 import type {
     OAPICallResult,
     HTTPMethodType,
-    NetworkFailure,
+    NetworkError,
 } from '../../utils/fetch';
 
 const LOG_AREA = 'TransportAuth';
@@ -66,7 +66,7 @@ class TransportAuth extends TransportBase {
     private onTransportError(
         oldTokenExpiry: number,
         timeRequested: number,
-        result: OAPICallResult | NetworkFailure,
+        result: OAPICallResult | NetworkError,
     ): never {
         if (result?.status === 401) {
             this.addAuthError(result.url, oldTokenExpiry, timeRequested);

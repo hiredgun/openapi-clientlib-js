@@ -7,7 +7,7 @@ import { shouldUseCloud } from './options';
 import type { QueueItem } from './queue';
 import TransportQueue from './queue';
 import type { Services, TransportOptions } from './types';
-import type { OAPICallResult, NetworkFailure } from '../../utils/fetch';
+import type { OAPICallResult, NetworkError } from '../../utils/fetch';
 import type { ITransport } from './transport-base';
 
 const URLRegex = /((https?:)?\/\/)?[^/]+(.*)/i;
@@ -87,7 +87,7 @@ class TransportBatch extends TransportQueue {
 
     private batchCallFailure = (
         callList: QueueItem[],
-        batchResponse: OAPICallResult | NetworkFailure,
+        batchResponse: OAPICallResult | NetworkError,
     ) => {
         const isAuthFailure = batchResponse?.status === 401;
         const isNetworkError =
@@ -244,7 +244,7 @@ class TransportBatch extends TransportQueue {
             .then((batchResult: OAPICallResult) =>
                 this.batchCallSuccess(callList, batchResult),
             )
-            .catch((errorResponse: OAPICallResult | NetworkFailure) =>
+            .catch((errorResponse: OAPICallResult | NetworkError) =>
                 this.batchCallFailure(callList, errorResponse),
             );
     };
