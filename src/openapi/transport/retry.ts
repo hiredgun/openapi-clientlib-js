@@ -1,11 +1,7 @@
-﻿import type {
-    APIResponse,
-    HTTPMethodInputArgs,
-    HTTPMethodType,
-    OAPICallResult,
-} from './types';
+﻿import type { APIResponse, HTTPMethodInputArgs } from './types';
+import type { OAPICallResult, HTTPMethodType } from '../../utils/fetch';
 import type TransportCore from './core';
-import TransportBase from './trasportBase';
+import TransportBase from './transport-base';
 
 interface TransportCall {
     method: HTTPMethodType;

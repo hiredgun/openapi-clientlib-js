@@ -1,8 +1,8 @@
 import log from '../../log';
 import TransportQueue from './queue';
 import type TransportCore from './core';
-import type { HTTPMethodType } from './types';
-import type { ITransport } from './trasportBase';
+import type { HTTPMethodType } from '../../utils/fetch';
+import type { ITransport } from './transport-base';
 
 // fix-me typo
 const LOG_AREA = 'TransportPutPatchDiagnositicsQueue';

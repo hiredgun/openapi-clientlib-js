@@ -16,7 +16,7 @@ import type {
 import type AuthProvider from '../authProvider';
 import type ParserBase from './parser/parser-base';
 import type { IHubProtocol } from '@microsoft/signalr';
-import type { ITransport } from '../transport/trasportBase';
+import type { ITransport } from '../transport/transport-base';
 
 export interface RetryDelayLevel {
     level: number;
@@ -491,7 +491,7 @@ class Streaming extends MicroEmitter {
         this.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
     }
 
-    // @ts-expect-error FIXME once transports are migrated to TS
+    // @ts-expect-error FIXME once streaming/connection/transports are migrated to TS
     private processUpdate(update) {
         try {
             if (update.ReferenceId[0] === OPENAPI_CONTROL_MESSAGE_PREFIX) {
@@ -515,7 +515,7 @@ class Streaming extends MicroEmitter {
      * handles the connection received event from SignalR
      * @param updates
      */
-    // @ts-expect-error FIXME once transports are migrated to TS
+    // @ts-expect-error FIXME once treaming/connection/transports are migrated to TS
     private onReceived(updates) {
         if (!updates) {
             log.warn(LOG_AREA, 'onReceived called with no data', updates);
@@ -551,7 +551,7 @@ class Streaming extends MicroEmitter {
      * Sends an update to a subscription by finding it and calling its callback
      * @param update
      */
-    // @ts-expect-error FIXME once transports are migrated to TS
+    // @ts-expect-error FIXME once treaming/connection/transports are migrated to TS
     private sendDataUpdateToSubscribers(update) {
         const subscription = this.findSubscriptionByReferenceId(
             update.ReferenceId,
@@ -566,7 +566,7 @@ class Streaming extends MicroEmitter {
         }
     }
 
-    // @ts-expect-error FIXME once transports are migrated to TS
+    // @ts-expect-error FIXME once treaming/connection/transports are migrated to TS
     private getHeartbeats(message) {
         if (message.Heartbeats) {
             return message.Heartbeats;
@@ -579,7 +579,7 @@ class Streaming extends MicroEmitter {
         return null;
     }
 
-    // @ts-expect-error FIXME once transports are migrated to TS
+    // @ts-expect-error FIXME once treaming/connection/transports are migrated to TS
     private getTargetReferenceIds(message) {
         if (message.TargetReferenceIds) {
             return message.TargetReferenceIds;
@@ -596,7 +596,7 @@ class Streaming extends MicroEmitter {
      * Handles a control message on the streaming connection
      * @param {Object} message From open-api
      */
-    // @ts-expect-error FIXME once transports are migrated to TS
+    // @ts-expect-error FIXME once streaming/connection/transports are migrated to TS
     private handleControlMessage(message) {
         switch (message.ReferenceId) {
             case OPENAPI_CONTROL_MESSAGE_HEARTBEAT:

@@ -1,13 +1,12 @@
 import type AuthProvider from '../authProvider';
 import type {
-    HTTPMethodType,
     HTTPMethodInputArgs,
     TransportCoreOptions,
     HTTPStatusCode,
-    OAPICallResult,
 } from './types';
-import type { ITransport } from './trasportBase';
-import TransportBase from './trasportBase';
+import type { OAPICallResult, HTTPMethodType } from '../../utils/fetch';
+import type { ITransport } from './transport-base';
+import TransportBase from './transport-base';
 import type { StringTemplateArgs } from '../../utils/string';
 
 export type QueueItem = {

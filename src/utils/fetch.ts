@@ -1,9 +1,29 @@
 ﻿import log from '../log';
-import type {
-    OAPICallResult,
-    HTTPMethodType,
-    NetworkFailure,
-} from '../openapi/transport/types';
+
+export type HTTPMethodType =
+    | 'get'
+    | 'put'
+    | 'post'
+    | 'delete'
+    | 'patch'
+    | 'options'
+    | 'head';
+
+export interface OAPICallResult {
+    response?: string | Blob | Record<string, unknown>;
+    status: number;
+    headers: Headers;
+    size: number;
+    url: string;
+    responseType?: string;
+    isNetworkError?: never;
+}
+
+export interface NetworkFailure {
+    message?: string | Error;
+    isNetworkError: true;
+    status?: never;
+}
 
 interface Options {
     body?: BodyInit | Record<string, unknown>;

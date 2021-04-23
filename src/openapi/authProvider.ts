@@ -6,7 +6,7 @@ import type {
     OAPICallResult,
     HTTPMethodType,
     NetworkFailure,
-} from './transport/types';
+} from '../utils/fetch';
 
 const LOG_AREA = 'AuthProvider';
 

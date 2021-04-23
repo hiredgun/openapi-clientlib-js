@@ -71,7 +71,7 @@ class Connection {
     authExpiry: number | null | undefined = null;
     contextId: string | null = null;
     options;
-    // FIXME use correct type once migrated
+    // FIXME use correct type once streaming/connection/transports are migrated
     transports: any;
     state = STATE_CREATED;
     transportIndex: number | null = null;

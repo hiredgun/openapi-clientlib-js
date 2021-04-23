@@ -1,15 +1,14 @@
 import log from '../../log';
 import type AuthProvider from '../authProvider';
 import TransportCore from './core';
-import TransportBase from './trasportBase';
-import type {
-    TransportOptions,
-    HTTPMethodType,
-    TransportCoreOptions,
-    OAPICallResult,
-    NetworkFailure,
-} from './types';
+import TransportBase from './transport-base';
+import type { TransportOptions, TransportCoreOptions } from './types';
 import type { StringTemplateArgs } from '../../utils/string';
+import type {
+    OAPICallResult,
+    HTTPMethodType,
+    NetworkFailure,
+} from '../../utils/fetch';
 
 const LOG_AREA = 'TransportAuth';
 

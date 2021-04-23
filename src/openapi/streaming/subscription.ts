@@ -10,7 +10,7 @@ import {
 import SubscriptionQueue from './subscription-queue';
 import type { QueuedItem } from './subscription-queue';
 import ParserFacade from './parser/parser-facade';
-import type { ITransport } from '../transport/trasportBase';
+import type { ITransport } from '../transport/transport-base';
 import type { TransportCoreOptions } from '../transport/types';
 
 // TODO improve naming

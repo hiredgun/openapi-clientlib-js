@@ -6,13 +6,9 @@ import log from '../../log';
 import { shouldUseCloud } from './options';
 import type { QueueItem } from './queue';
 import TransportQueue from './queue';
-import type {
-    NetworkFailure,
-    OAPICallResult,
-    Services,
-    TransportOptions,
-} from './types';
-import type { ITransport } from './trasportBase';
+import type { Services, TransportOptions } from './types';
+import type { OAPICallResult, NetworkFailure } from '../../utils/fetch';
+import type { ITransport } from './transport-base';
 
 const URLRegex = /((https?:)?\/\/)?[^/]+(.*)/i;
 
