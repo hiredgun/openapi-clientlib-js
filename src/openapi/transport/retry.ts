@@ -1,5 +1,9 @@
 ﻿import type { HTTPMethodInputArgs } from './types';
-import type { OAPICallResult, HTTPMethodType, NetworkError } from '../../utils/fetch';
+import type {
+    OAPICallResult,
+    HTTPMethodType,
+    NetworkError,
+} from '../../utils/fetch';
 import type TransportCore from './core';
 import TransportBase from './transport-base';
 
