@@ -18,15 +18,6 @@ export interface TransportOptions {
     defaultCache?: boolean;
 }
 
-export interface APIResponse {
-    response: string;
-    headers?: {
-        get: (key: string) => string;
-    };
-    isNetworkError?: boolean;
-    status?: number;
-}
-
 export interface TransportCoreOptions {
     headers?: Record<string, string>;
     queryParams?: Record<string, string | number>;
