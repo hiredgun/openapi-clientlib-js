@@ -22,7 +22,7 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace NodeJS {
         interface Global {
-            WebSocket: any;
+            WebSocket: jest.Mock;
         }
     }
 }
@@ -220,7 +220,7 @@ describe('openapi WebSocket Transport', () => {
                 timeAfterMsg: number,
                 timeAfterOrphanFound: number,
                 shouldReconnect: boolean,
-                done,
+                done: () => void,
             ) => {
                 const options = {};
                 const spyOnStartCallback = jest

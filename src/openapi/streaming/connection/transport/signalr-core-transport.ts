@@ -2,6 +2,7 @@ import log from '../../../../log';
 import * as transportTypes from '../transportTypes';
 import * as constants from '../constants';
 import type { TransportTypes } from '../transportTypes';
+import type { CONNECTION_STATE_TYPE } from '../types';
 
 declare global {
     interface Window {
@@ -58,7 +59,7 @@ class SignalrCoreTransport {
     hasStreamingStarted = false;
     isDisconnecting = false;
     hasTransportError = false;
-    state = constants.CONNECTION_STATE_DISCONNECTED;
+    state: CONNECTION_STATE_TYPE = constants.CONNECTION_STATE_DISCONNECTED;
     utf8Decoder?: TextDecoder;
 
     // callbacks
@@ -607,7 +608,7 @@ class SignalrCoreTransport {
             });
     }
 
-    setState(state: number) {
+    setState(state: CONNECTION_STATE_TYPE) {
         this.state = state;
         this.stateChangedCallback(state);
     }

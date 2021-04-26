@@ -44,7 +44,7 @@ export const TRANSPORT_NAME_MAP = {
     },
 };
 
-const NOOP = () => { };
+const NOOP = () => {};
 
 const STATE_CREATED = 'connection-state-created';
 const STATE_STARTED = 'connection-state-started';
