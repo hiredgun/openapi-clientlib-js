@@ -1,4 +1,3 @@
-// @ts-nocheck
 import Connection from './connection';
 import * as transportTypes from './transportTypes';
 import 'fast-text-encoding';
@@ -44,7 +43,7 @@ describe('openapi Streaming connection', () => {
 
         global.signalrCore = {
             HubConnectionBuilder: MockConnectionBuilder,
-            JsonHubProtocol: () => {},
+            JsonHubProtocol: () => { },
             HttpTransportType: {
                 WebSockets: 1,
                 LongPolling: 4,
@@ -67,7 +66,7 @@ describe('openapi Streaming connection', () => {
         it('should fallback to signalr longpolling if websocket fails', (done) => {
             mockHubConnection.start.mockImplementation(() => Promise.reject());
 
-            connection.start(() => {});
+            connection.start(() => { });
             expect(mockWithUrlConfig).toHaveBeenCalledWith(
                 `${baseUrl}/streaming?contextId=${contextId}`,
                 expect.objectContaining({
