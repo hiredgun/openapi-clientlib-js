@@ -8,18 +8,29 @@ import mockMathRandom from '../../../../test/mocks/math-random';
 import mockFetch from '../../../../test/mocks/fetch';
 import * as RequestUtils from '../../../../utils/request';
 import WebSocketTransport from './websocket-transport';
-import * as constants from './../constants';
+import * as constants from '../constants';
+// @ts-ignore
 import jsonPayload from './payload.json';
 import 'fast-text-encoding';
+import type WebsocketTransport from './websocket-transport';
 
 const CONTEXT_ID = '0000000000';
 const AUTH_TOKEN = 'TOKEN';
 const BASE_URL = 'testUrl';
 
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace NodeJS {
+        interface Global {
+            WebSocket: jest.Mock;
+        }
+    }
+}
+
 describe('openapi WebSocket Transport', () => {
-    let fetchMock;
-    let authProvider;
-    let spySocketClose;
+    let fetchMock: any;
+    let authProvider: Record<string, jest.Mock>;
+    let spySocketClose: jest.Mock;
 
     beforeEach(() => {
         spySocketClose = jest.fn().mockName('spySocketClose');
@@ -93,6 +104,7 @@ describe('openapi WebSocket Transport', () => {
                 );
 
                 // simulate handshake failure by not calling onopen first
+                // @ts-expect-error
                 transport.socket.onclose({ code: 1006 });
 
                 expect(spyOnFailCallback).toBeCalledTimes(1);
@@ -161,16 +173,22 @@ describe('openapi WebSocket Transport', () => {
             transport.authorizePromise.then(() => {
                 expect(global.WebSocket).toBeCalledTimes(1);
 
-                transport.socket.readyState = 1; // WebSocket internal state equal open
-                transport.socket.onopen();
+                // @ts-expect-error its a readonly property
+                transport.socket?.readyState = 1; // WebSocket internal state equal open
+                // @ts-ignore referring to socket method instead of WebSocketTransport
+                transport.socket?.onopen();
 
-                transport.socket.readyState = 3; // WebSocket internal state equal closed
-                transport.socket.onclose({ code: 1001 });
+                // @ts-expect-error its a readonly property
+                transport.socket?.readyState = 3; // WebSocket internal state equal closed
+                // @ts-ignore referring to socket method instead of WebSocketTransport
+                transport.socket?.onclose({ code: 1001 });
 
                 // assert we retry immediately
                 expect(global.WebSocket).toBeCalledTimes(2);
 
-                transport.socket.readyState = 3; // WebSocket internal state equal closed
+                // @ts-expect-error its a readonly property
+                transport.socket?.readyState = 3; // WebSocket internal state equal closed
+                // @ts-ignore referring to socket method instead of WebSocketTransport
                 transport.socket.onclose({ code: 1001 });
 
                 // assert we do not retry immediately
@@ -197,7 +215,13 @@ describe('openapi WebSocket Transport', () => {
             [4000, 500, false],
         ])(
             'should reconnect if it looks like we are not connected any more - %d,% d',
-            (timeAfterMsg, timeAfterOrphanFound, shouldReconnect, done) => {
+            // @ts-expect-error as done is not defined in return type of jest it
+            (
+                timeAfterMsg: number,
+                timeAfterOrphanFound: number,
+                shouldReconnect: boolean,
+                done: () => void,
+            ) => {
                 const options = {};
                 const spyOnStartCallback = jest
                     .fn()
@@ -224,6 +248,7 @@ describe('openapi WebSocket Transport', () => {
                     );
                     payload.set(dataBuffer, 17);
 
+                    // @ts-ignore referring to socket method instead of WebSocketTransport
                     transport.socket.onmessage({ data: payload.buffer });
 
                     // but now its disconnected.. 5 seconds pass
@@ -265,7 +290,7 @@ describe('openapi WebSocket Transport', () => {
             fetchMock.resolve(200, {});
 
             transport.authorizePromise.then(() => {
-                expect(transport.socket.onmessage).not.toBeNull();
+                expect(transport.socket?.onmessage).not.toBeNull();
 
                 const dataBuffer = new window.TextEncoder().encode(
                     JSON.stringify(jsonPayload),
@@ -279,6 +304,7 @@ describe('openapi WebSocket Transport', () => {
                 );
                 payload.set(dataBuffer, 17);
 
+                // @ts-ignore referring to socket method instead of WebSocketTransport
                 transport.socket.onmessage({ data: payload.buffer });
                 expect(spyOnReceivedCallback).toBeCalledTimes(1);
                 expect(spyOnReceivedCallback).toBeCalledWith([
@@ -306,7 +332,7 @@ describe('openapi WebSocket Transport', () => {
             fetchMock.resolve(200, {});
 
             transport.authorizePromise.then(() => {
-                expect(transport.socket.onmessage).not.toBeNull();
+                expect(transport.socket?.onmessage).not.toBeNull();
                 const illFormattedJson = '{some-key:123';
                 const dataBuffer = Uint8Array.from(illFormattedJson, (c) =>
                     c.charCodeAt(0),
@@ -320,7 +346,8 @@ describe('openapi WebSocket Transport', () => {
                 );
                 payload.set(dataBuffer, 17);
 
-                transport.socket.onmessage({ data: payload.buffer });
+                // @ts-ignore referring to socket method instead of WebSocketTransport
+                transport.socket?.onmessage({ data: payload.buffer });
                 expect(spyOnFailCallback).toBeCalledTimes(1);
 
                 done();
@@ -329,12 +356,12 @@ describe('openapi WebSocket Transport', () => {
     });
 
     describe('connection states', () => {
-        let transport;
-        let stateChangedSpy;
+        let transport: WebsocketTransport;
+        let stateChangedSpy: jest.Mock;
         let spyOnStartCallback;
-        let spyOnunauthorizedCallback;
+        let spyOnunauthorizedCallback: jest.Mock;
 
-        function givenTransport(options) {
+        function givenTransport(options?: any) {
             spyOnStartCallback = jest.fn().mockName('spyStartCallback');
 
             transport = new WebSocketTransport(BASE_URL);
@@ -373,7 +400,9 @@ describe('openapi WebSocket Transport', () => {
                     constants.CONNECTION_STATE_CONNECTING,
                 ]);
 
+                // @ts-expect-error its a readonly property
                 transport.socket.readyState = 1; // WebSocket internal state equal open
+                // @ts-ignore referring to socket method instead of WebSocketTransport
                 transport.socket.onopen();
 
                 expect(stateChangedSpy.mock.calls.length).toEqual(2);
@@ -395,7 +424,9 @@ describe('openapi WebSocket Transport', () => {
                     constants.CONNECTION_STATE_CONNECTING,
                 ]);
 
+                // @ts-expect-error its a readonly property
                 transport.socket.readyState = 1; // WebSocket internal state equal open
+                // @ts-ignore referring to socket method instead of WebSocketTransport
                 transport.socket.onopen();
 
                 expect(stateChangedSpy.mock.calls.length).toEqual(2);
@@ -403,7 +434,9 @@ describe('openapi WebSocket Transport', () => {
                     constants.CONNECTION_STATE_CONNECTED,
                 ]);
 
+                // @ts-expect-error its a readonly property
                 transport.socket.readyState = 3; // WebSocket internal state equal closed
+                // @ts-ignore referring to socket method instead of WebSocketTransport
                 transport.socket.onclose({ code: 1001 });
 
                 expect(stateChangedSpy.mock.calls[2]).toEqual([
@@ -428,7 +461,9 @@ describe('openapi WebSocket Transport', () => {
                     constants.CONNECTION_STATE_CONNECTING,
                 ]);
 
+                // @ts-expect-error its a readonly property
                 transport.socket.readyState = 1; // WebSocket internal state equal open
+                // @ts-ignore referring to socket method instead of WebSocketTransport
                 transport.socket.onopen();
 
                 expect(stateChangedSpy.mock.calls.length).toEqual(2);
@@ -436,7 +471,9 @@ describe('openapi WebSocket Transport', () => {
                     constants.CONNECTION_STATE_CONNECTED,
                 ]);
 
+                // @ts-expect-error its a readonly property
                 transport.socket.readyState = 3; // WebSocket internal state equal closed
+                // @ts-ignore referring to socket method instead of WebSocketTransport
                 transport.socket.onclose({ code: 1002 });
 
                 expect(spyOnunauthorizedCallback).toBeCalledTimes(1);

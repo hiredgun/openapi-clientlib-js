@@ -2,19 +2,30 @@ import { installClock, uninstallClock } from '../../../../test/utils';
 import mockMathRandom from '../../../../test/mocks/math-random';
 import log from '../../../../log';
 import SignalRTransport from './signalr-transport';
-import * as constants from './../constants';
+import * as constants from '../constants';
 
 const CONTEXT_ID = '0000000000';
 const AUTH_TOKEN = 'TOKEN';
 const BASE_URL = 'testUrl';
 
+type Callback = (...args: any) => any;
+
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace NodeJS {
+        interface Global {
+            $: any;
+        }
+    }
+}
+
 describe('openapi SignalR Transport', () => {
-    let stateChangedCallback;
-    let connectionSlowCallback;
-    let errorCallback;
-    let startCallback;
-    let receivedCallback;
-    let mockConnection;
+    let stateChangedCallback: Callback;
+    let connectionSlowCallback: Callback;
+    let errorCallback: Callback;
+    let startCallback: Callback;
+    let receivedCallback: Callback;
+    let mockConnection: any;
 
     beforeEach(() => {
         mockConnection = {
@@ -25,21 +36,25 @@ describe('openapi SignalR Transport', () => {
             connectionSlow: jest.fn(),
             stop: jest.fn(),
         };
-        mockConnection.stateChanged.mockImplementation((callback) => {
+        mockConnection.stateChanged.mockImplementation((callback: Callback) => {
             stateChangedCallback = callback;
         });
-        mockConnection.start.mockImplementation((options, callback) => {
-            startCallback = callback;
-        });
-        mockConnection.received.mockImplementation((callback) => {
+        mockConnection.start.mockImplementation(
+            (_options: any, callback: Callback) => {
+                startCallback = callback;
+            },
+        );
+        mockConnection.received.mockImplementation((callback: Callback) => {
             receivedCallback = callback;
         });
-        mockConnection.error.mockImplementation((callback) => {
+        mockConnection.error.mockImplementation((callback: Callback) => {
             errorCallback = callback;
         });
-        mockConnection.connectionSlow.mockImplementation((callback) => {
-            connectionSlowCallback = callback;
-        });
+        mockConnection.connectionSlow.mockImplementation(
+            (callback: Callback) => {
+                connectionSlowCallback = callback;
+            },
+        );
 
         global.$ = {
             connection: jest.fn().mockReturnValue(mockConnection),
@@ -108,9 +123,9 @@ describe('openapi SignalR Transport', () => {
 
     describe('connection states', () => {
         let transport;
-        let stateChangedSpy;
+        let stateChangedSpy: any;
 
-        function givenTransport(options) {
+        function givenTransport(options?: any) {
             transport = new SignalRTransport(BASE_URL);
             transport.updateQuery(AUTH_TOKEN, CONTEXT_ID);
             transport.start(options);
@@ -157,7 +172,7 @@ describe('openapi SignalR Transport', () => {
     });
 
     describe('signal-r events', () => {
-        let transport;
+        let transport: SignalRTransport;
 
         beforeEach(() => {
             transport = new SignalRTransport(BASE_URL);
@@ -174,11 +189,13 @@ describe('openapi SignalR Transport', () => {
         it('handles connection error events', () => {
             jest.spyOn(log, 'warn');
             errorCallback('error details');
+            // @ts-ignore
             expect(log.warn.mock.calls.length).toEqual(1);
         });
         it('handles signal-r log calls', () => {
             jest.spyOn(log, 'debug');
             mockConnection.log('my message');
+            // @ts-ignore
             expect(log.debug.mock.calls.length).toEqual(1);
         });
     });
