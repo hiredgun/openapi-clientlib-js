@@ -20,7 +20,7 @@ describe('openapi SignalR core Transport', () => {
     let subscribeNextHandler = NOOP;
     let subscribeErrorHandler = NOOP;
 
-    let mockHubConnection;
+    let mockHubConnection: any;
     let spyOnMessageStream;
     let spyOnConnectionStop;
     let spyOnStartCallback;

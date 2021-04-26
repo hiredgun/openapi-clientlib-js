@@ -70,9 +70,10 @@ class Connection {
     authToken: string | null = null;
     authExpiry: number | null | undefined = null;
     contextId: string | null = null;
-    options;
-    // FIXME use correct type once streaming/connection/transports are migrated
-    transports: any;
+    options: ConnectionOptions;
+    transports: Array<
+        typeof TRANSPORT_NAME_MAP[keyof typeof TRANSPORT_NAME_MAP]
+    >;
     state = STATE_CREATED;
     transportIndex: number | null = null;
     transport: any;

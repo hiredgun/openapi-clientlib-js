@@ -1,7 +1,11 @@
 import log from '../../../../log';
 import * as transportTypes from '../transportTypes';
 import * as constants from '../constants';
-import type { ConnectionState, TransportTypes } from '../types';
+import type {
+    ConnectionState,
+    TransportTypes,
+    ConnectionOptions,
+} from '../types';
 import type SignalR from '@microsoft/signalr';
 
 declare global {
@@ -10,26 +14,31 @@ declare global {
     }
 }
 
-interface ProtobufStreamingMessage {
-    ReferenceId: string;
-    PayloadFormat: number;
-    Payload: string;
-    MessageId: string;
-    DataFormat:
-         typeof constants.DATA_FORMAT_PROTOBUF;
-    Data: unknown;
+type Callback = (...args: any[]) => any;
+
+interface StreamingTransportOptions extends ConnectionOptions {
+    transportType?: TransportTypes;
+    skipNegotiation?: boolean;
 }
 
-interface JSONStreamingMessage {
-    ReferenceId: string;
-    PayloadFormat: number;
-    Payload: string;
-    MessageId: string;
-    DataFormat: typeof constants.DATA_FORMAT_JSON
-    Data: BufferSource;
-}
+type StreamingData = Record<string, unknown> | BufferSource | string;
 
-type StreamingMessage = ProtobufStreamingMessage | JSONStreamingMessage;
+type StreamingMessage = {
+    ReferenceId: string;
+    PayloadFormat: 1 | 2;
+    Payload: StreamingData;
+    MessageId: string;
+};
+
+type DataFormat =
+    | typeof constants.DATA_FORMAT_JSON
+    | typeof constants.DATA_FORMAT_PROTOBUF;
+interface NomrmalizedStreamingMessge {
+    ReferenceId: string;
+    MessageId: string;
+    DataFormat: DataFormat;
+    Data: StreamingData;
+}
 
 const LOG_AREA = 'SignalrCoreTransport';
 const NOOP = () => {};
@@ -46,24 +55,24 @@ const renewStatus = {
 class SignalrCoreTransport {
     baseUrl = '';
     name = transportTypes.SIGNALR_CORE;
-    connection: SignalR.HubConnectionBuilder | null = null;
-    authToken = null;
-    authExpiry = null;
-    contextId = null;
-    messageStream = null;
-    lastMessageId = null;
+    connection: SignalR.HubConnection | null = null;
+    authToken: string | null = null;
+    authExpiry: number | null = null;
+    contextId: string | null = null;
+    messageStream: SignalR.IStreamResult<any> | null = null;
+    lastMessageId: string | null = null;
     hasStreamingStarted = false;
     isDisconnecting = false;
     hasTransportError = false;
     state: ConnectionState = constants.CONNECTION_STATE_DISCONNECTED;
 
     stateChangedCallback: (state: ConnectionState) => void = NOOP;
-    receivedCallback = NOOP;
+    receivedCallback: (data: StreamingData) => void = NOOP;
     errorCallback = NOOP;
     unauthorizedCallback = NOOP;
     transportFailCallback;
 
-    utf8Decoder: TextDecoder | undefined;
+    utf8Decoder!: TextDecoder;
 
     constructor(baseUrl: string, transportFailCallback = NOOP) {
         this.baseUrl = baseUrl;
@@ -110,10 +119,13 @@ class SignalrCoreTransport {
         log.warn(LOG_AREA, message);
     };
 
-    private getRetryPolicy = () => {
+    private getRetryPolicy = (
+        authExpiry: number,
+        lastMessageId?: string | null,
+    ) => {
         return {
-            nextRetryDelayInMilliseconds(retryContext) {
-                if (this.authExpiry < Date.now()) {
+            nextRetryDelayInMilliseconds(retryContext: SignalR.RetryContext) {
+                if (authExpiry < Date.now()) {
                     log.warn(
                         LOG_AREA,
                         'Token expired while trying to reconnect',
@@ -126,10 +138,7 @@ class SignalrCoreTransport {
                 // If messages were not received before connection close, don't retry
                 // instead create a new connection with different context id
                 // Server relies on this to determine wheter its reconnection or not
-                if (
-                    this.lastMessageId === undefined ||
-                    this.lastMessageId === null
-                ) {
+                if (lastMessageId === undefined || lastMessageId === null) {
                     return null;
                 }
 
@@ -144,8 +153,8 @@ class SignalrCoreTransport {
         accessTokenFactory: () => string;
         protocol: SignalR.IHubProtocol;
         retryPolicy: SignalR.IRetryPolicy;
-        skipNegotiation: boolean;
-        transportType: TransportTypes;
+        skipNegotiation?: boolean;
+        transportType?: TransportTypes;
     }) => {
         const {
             baseUrl,
@@ -182,7 +191,7 @@ class SignalrCoreTransport {
     private normalizeMessage = (
         message: StreamingMessage,
         protocol: SignalR.IHubProtocol,
-    ) => {
+    ): NomrmalizedStreamingMessge => {
         const { ReferenceId, PayloadFormat, Payload, MessageId } = message;
 
         let dataFormat;
@@ -202,6 +211,7 @@ class SignalrCoreTransport {
         if (protocol.name === 'json') {
             data = new Uint8Array(
                 window
+                    // @ts-expect-error assuming data is string here
                     .atob(data)
                     .split('')
                     .map((char) => char.charCodeAt(0)),
@@ -211,20 +221,23 @@ class SignalrCoreTransport {
         return {
             ReferenceId,
             MessageId,
-            DataFormat: dataFormat,
+            DataFormat: dataFormat as
+                | DataFormat
+                | typeof constants.DATA_FORMAT_PROTOBUF,
             Data: data,
         };
     };
 
-    private parseMessage(message: StreamingMessage, utf8Decoder: TextDecoder) {
+    private parseMessage(
+        message: NomrmalizedStreamingMessge,
+        utf8Decoder: TextDecoder,
+    ) {
         const { ReferenceId, DataFormat, MessageId } = message;
         let data = message.Data;
 
         if (message.DataFormat === constants.DATA_FORMAT_JSON) {
-            const x = message;
             try {
-                data = utf8Decoder.decode(data);
-                data = JSON.parse(data);
+                data = JSON.parse(utf8Decoder.decode(message.Data as BufferSource));
             } catch (error) {
                 error.payload = data;
 
@@ -240,7 +253,7 @@ class SignalrCoreTransport {
         };
     }
 
-    start(options, onStartCallback) {
+    start(options: StreamingTransportOptions, onStartCallback: () => void) {
         if (this.connection) {
             log.warn(
                 LOG_AREA,
@@ -249,21 +262,24 @@ class SignalrCoreTransport {
             return;
         }
 
-        let lastUsedToken = null;
-        const protocol =
+        let lastUsedToken: string | null = null;
+        const protocol: SignalR.IHubProtocol =
             options.messageSerializationProtocol ||
             new window.signalrCore.JsonHubProtocol();
 
         try {
             this.connection = this.buildConnection({
                 baseUrl: this.baseUrl,
-                contextId: this.contextId,
+                contextId: this.contextId as string, // assuming contextId already exists
                 accessTokenFactory: () => {
                     lastUsedToken = this.authToken;
-                    return this.authToken;
+                    return this.authToken as string; // assuming authToken already exists
                 },
                 protocol,
-                retryPolicy: this.getRetryPolicy(),
+                retryPolicy: this.getRetryPolicy(
+                    this.authExpiry as number, // assuming authExpiry already exists
+                    this.lastMessageId,
+                ),
                 skipNegotiation: options.skipNegotiation,
                 transportType: options.transportType,
             });
@@ -276,7 +292,9 @@ class SignalrCoreTransport {
             return;
         }
 
-        this.connection.onclose((error) => this.handleConnectionClosure(error));
+        this.connection.onclose((error?: Error) =>
+            this.handleConnectionClosure(error),
+        );
         this.connection.onreconnecting((error) => {
             log.debug(LOG_AREA, 'Attempting to reconnect', {
                 error,
@@ -284,11 +302,13 @@ class SignalrCoreTransport {
 
             this.setState(constants.CONNECTION_STATE_RECONNECTING);
 
-            const baseUrl = this.connection.baseUrl.replace(
+            const baseUrl = (this
+                .connection as SignalR.HubConnection).baseUrl.replace(
                 /&messageId=\d+/,
                 '',
             );
-            this.connection.baseUrl = `${baseUrl}&messageId=${this.lastMessageId}`;
+            (this
+                .connection as SignalR.HubConnection).baseUrl = `${baseUrl}&messageId=${this.lastMessageId}`;
         });
         this.connection.onreconnected(() => {
             // recreate message stream
@@ -336,7 +356,7 @@ class SignalrCoreTransport {
             });
     }
 
-    stop(hasTransportError) {
+    stop(hasTransportError?: boolean) {
         if (!this.connection) {
             log.warn(LOG_AREA, "connection doesn't exist");
             return;
@@ -360,10 +380,13 @@ class SignalrCoreTransport {
 
         // close message stream before closing connection
         if (this.messageStream) {
-            return this.messageStream
-                .cancelCallback()
-                .then(sendCloseMessage)
-                .then(() => this.connection && this.connection.stop());
+            return (
+                this.messageStream
+                    // @ts-expect-error cancelCallback is no included in the IStreamResult but according to implementation it exists
+                    .cancelCallback()
+                    .then(sendCloseMessage)
+                    .then(() => this.connection && this.connection.stop())
+            );
         }
 
         return sendCloseMessage().then(
@@ -371,7 +394,7 @@ class SignalrCoreTransport {
         );
     }
 
-    createMessageStream(protocol) {
+    createMessageStream(protocol: SignalR.IHubProtocol) {
         if (!this.connection) {
             log.warn(
                 LOG_AREA,
@@ -398,7 +421,7 @@ class SignalrCoreTransport {
         this.messageStream = messageStream;
     }
 
-    handleConnectionClosure(error) {
+    handleConnectionClosure(error?: Error) {
         if (error) {
             log.error(LOG_AREA, 'connection closed abruptly', { error });
         }
@@ -423,7 +446,10 @@ class SignalrCoreTransport {
         this.setState(constants.CONNECTION_STATE_DISCONNECTED);
     }
 
-    handleNextMessage(message, protocol) {
+    handleNextMessage(
+        message: StreamingMessage,
+        protocol: SignalR.IHubProtocol,
+    ) {
         if (!this.connection) {
             log.warn(
                 LOG_AREA,
@@ -459,7 +485,7 @@ class SignalrCoreTransport {
         }
     }
 
-    handleMessageStreamError(error) {
+    handleMessageStreamError(error: unknown) {
         // It will be called if signalr failed to send message to start streaming
         // or if connection is closed with some error
         // only handle the 1st case since connection closing with error is already handled in onclose handler
@@ -478,7 +504,12 @@ class SignalrCoreTransport {
         }
     }
 
-    updateQuery(authToken, contextId, authExpiry, forceAuth = false) {
+    updateQuery(
+        authToken: string,
+        contextId: string,
+        authExpiry: number,
+        forceAuth = false,
+    ) {
         log.debug(LOG_AREA, 'Updated query', {
             contextId,
             forceAuth,
@@ -588,15 +619,15 @@ class SignalrCoreTransport {
         this.stateChangedCallback = callback;
     }
 
-    setReceivedCallback(callback) {
+    setReceivedCallback(callback: (data: StreamingData) => void) {
         this.receivedCallback = callback;
     }
 
-    setErrorCallback(callback) {
+    setErrorCallback(callback: Callback) {
         this.errorCallback = callback;
     }
 
-    setUnauthorizedCallback(callback) {
+    setUnauthorizedCallback(callback: Callback) {
         this.unauthorizedCallback = callback;
     }
 }
