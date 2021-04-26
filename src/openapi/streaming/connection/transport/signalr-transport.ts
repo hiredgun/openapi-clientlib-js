@@ -1,9 +1,9 @@
 import log from '../../../../log';
 import * as transportTypes from '../transportTypes';
-import * as constants from './../constants';
+import * as constants from '../constants';
 
 const LOG_AREA = 'SignalRTransport';
-const NOOP = () => {};
+const NOOP = () => { };
 
 declare const $: any;
 
