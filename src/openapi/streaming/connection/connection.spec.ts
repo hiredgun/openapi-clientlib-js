@@ -7,8 +7,8 @@ describe('openapi Streaming connection', () => {
     const baseUrl = 'test-url';
     const token = 'token';
     const contextId = '00000000';
-    let mockWithUrlConfig: any;
-    let mockHubConnection: any;
+    let mockWithUrlConfig: jest.Mock;
+    let mockHubConnection: Record<string, jest.Mock>;
     let connection: Connection;
 
     beforeEach(() => {
@@ -24,7 +24,7 @@ describe('openapi Streaming connection', () => {
         };
 
         class MockConnectionBuilder {
-            withUrl(...args: any[]) {
+            withUrl(...args: unknown[]) {
                 mockWithUrlConfig(...args);
                 return this;
             }
@@ -44,7 +44,7 @@ describe('openapi Streaming connection', () => {
 
         global.signalrCore = {
             HubConnectionBuilder: MockConnectionBuilder,
-            JsonHubProtocol: () => {},
+            JsonHubProtocol: () => { },
             HttpTransportType: {
                 WebSockets: 1,
                 LongPolling: 4,
@@ -67,7 +67,7 @@ describe('openapi Streaming connection', () => {
         it('should fallback to signalr longpolling if websocket fails', (done) => {
             mockHubConnection.start.mockImplementation(() => Promise.reject());
 
-            connection.start();
+            connection.start(() => { });
             expect(mockWithUrlConfig).toHaveBeenCalledWith(
                 `${baseUrl}/streaming?contextId=${contextId}`,
                 expect.objectContaining({

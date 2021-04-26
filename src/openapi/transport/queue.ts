@@ -10,8 +10,9 @@ import type {
     TransportCoreOptions,
     APIStatusCode,
 } from './types';
-import type { ITransport } from './trasportBase';
+import type { ITransport, HTTPMethodResult } from './trasportBase';
 import TransportBase from './trasportBase';
+import type { StringTemplateArgs } from '../../utils/string';
 
 // -- Exported methods section --
 
@@ -35,7 +36,7 @@ export type QueueItem = {
     args: MethodInputArgs;
     servicePath: string;
     urlTemplate: string;
-    urlArgs?: Record<string, string | number> | null;
+    urlArgs?: StringTemplateArgs;
     options?: TransportCoreOptions;
     resolve: (...value: any[]) => void;
     reject: (reason?: any, ...rest: any[]) => void;
@@ -62,7 +63,6 @@ class TransportQueue extends TransportBase {
                 this.isQueueing = true;
             }
             // subscribe to listen for authentication changes that might trigger auth to be valid and the queue to empty
-            // @ts-ignore fix-me
             authProvider.on(
                 authProvider.EVENT_TOKEN_RECEIVED,
                 this.authTokenReceived,
@@ -99,7 +99,7 @@ class TransportQueue extends TransportBase {
 
             const transportCallArguments = args;
 
-            return new Promise((resolve, reject) => {
+            return new Promise<HTTPMethodResult>((resolve, reject) => {
                 const queueItem: QueueItem = {
                     method,
                     args: transportCallArguments,
@@ -179,7 +179,6 @@ class TransportQueue extends TransportBase {
     dispose() {
         this.queue.length = 0;
         if (this.authProvider) {
-            // @ts-ignore fix-me
             this.authProvider.off(
                 this.authProvider.EVENT_TOKEN_RECEIVED,
                 this.authTokenReceived,

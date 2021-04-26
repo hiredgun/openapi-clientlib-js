@@ -3,8 +3,9 @@ import * as transportTypes from './transportTypes';
 import WebsocketTransport from './transport/websocket-transport';
 import SignalrTransport from './transport/signalr-transport';
 import SignalrCoreTransport from './transport/signalr-core-transport';
+import type { TransportTypes, ConnectionOptions } from './types';
 
-type Callback = (...args: any) => any | void;
+type Callback = (...args: unknown[]) => unknown | void;
 
 const LOG_AREA = 'Connection';
 const DEFAULT_TRANSPORTS = [
@@ -12,7 +13,7 @@ const DEFAULT_TRANSPORTS = [
     transportTypes.LEGACY_SIGNALR_WEBSOCKETS,
 ];
 
-const TRANSPORT_NAME_MAP: any = {
+export const TRANSPORT_NAME_MAP = {
     [transportTypes.SIGNALR_CORE_WEBSOCKETS]: {
         options: {
             transportType: transportTypes.SIGNALR_CORE_WEBSOCKETS,
@@ -43,7 +44,7 @@ const TRANSPORT_NAME_MAP: any = {
     },
 };
 
-const NOOP = () => {};
+const NOOP = () => { };
 
 const STATE_CREATED = 'connection-state-created';
 const STATE_STARTED = 'connection-state-started';
@@ -55,33 +56,37 @@ const STATE_DISPOSED = 'connection-state-disposed';
  * - WebSocket
  * - SignalR WebSocket/Long Polling (Legacy/Fallback solution).
  */
-
 class Connection {
     baseUrl: string;
     failCallback: Callback;
-    startCallback = NOOP;
+    startCallback: Callback | undefined = NOOP;
     stateChangedCallback = NOOP;
     receiveCallback = NOOP;
     connectionSlowCallback = NOOP;
     authToken: string | null = null;
-    authExpiry: number | null = null;
-    contextId: number | null = null;
-    options: any;
+    authExpiry: number | null | undefined = null;
+    contextId: string | null = null;
+    options;
+    // FIXME use correct type once migrated
     transports: any;
     state = STATE_CREATED;
     transportIndex: number | null = null;
+    // FIXME use correct type once migrated
     transport: any;
-    unauthorizedCallback: any;
+    unauthorizedCallback: Callback | undefined;
 
-    constructor(options: any, baseUrl: string, failCallback = NOOP) {
+    constructor(
+        options: ConnectionOptions,
+        baseUrl: string,
+        failCallback = NOOP,
+    ) {
         // Callbacks
         this.failCallback = failCallback;
 
         // Parameters
         this.baseUrl = baseUrl;
         this.options = options;
-
-        this.transports = this.getSupportedTransports(this.options?.transport);
+        this.transports = this.getSupportedTransports(this.options.transport);
 
         // Index of currently used transport. Index corresponds to position in this.transports.
         this.transport = this.createTransport(this.baseUrl);
@@ -102,35 +107,33 @@ class Connection {
         }
     }
 
-    private getLogDetails = () => {
+    private getLogDetails() {
         return {
             url: this.baseUrl,
             index: this.transportIndex,
             contextId: this.contextId,
-            enabledTransports: this.options && this.options.transport,
+            enabledTransports: this.options?.transport,
         };
-    };
+    }
 
-    private getSupportedTransports = (requestedTrasnports: string[]) => {
-        let transportNames = requestedTrasnports;
-        if (!transportNames) {
-            transportNames = DEFAULT_TRANSPORTS;
+    private ensureValidState = (
+        callback: Callback,
+        callbackType: string,
+        ...args: unknown[]
+    ) => {
+        if (this.state === STATE_DISPOSED) {
+            log.warn(LOG_AREA, 'callback called after transport was disposed', {
+                callback: callbackType,
+                transport: this.transport.name,
+                contextId: this.contextId,
+            });
+            return;
         }
 
-        const supported = [];
-
-        for (let i = 0; i < transportNames.length; i++) {
-            const transportName = transportNames[i];
-
-            if (TRANSPORT_NAME_MAP[transportName]) {
-                supported.push(TRANSPORT_NAME_MAP[transportName]);
-            }
-        }
-
-        return supported;
+        callback(...args);
     };
 
-    private onTransportFail = (error: any) => {
+    private onTransportFail = (error?: Record<string, unknown>) => {
         log.info(LOG_AREA, 'Transport failed', {
             error,
             ...this.getLogDetails(),
@@ -172,8 +175,8 @@ class Connection {
         }
     };
 
-    // @ts-ignore fix-me
-    private createTransport = (baseUrl: string) => {
+    // @ts-expect-error FIXME use proper types once signal-r transports are migrated
+    private createTransport(baseUrl: string) {
         if (this.transportIndex === null || this.transportIndex === undefined) {
             this.transportIndex = 0;
         } else {
@@ -194,52 +197,69 @@ class Connection {
         }
 
         return new SelectedTransport(baseUrl, this.onTransportFail);
-    };
+    }
 
-    private ensureValidState = (
-        callback: Callback,
-        callbackType: string,
-        ...args: any
-    ) => {
-        if (this.state === STATE_DISPOSED) {
-            log.warn(LOG_AREA, 'callback called after transport was disposed', {
-                callback: callbackType,
-                transport: this.transport.name,
-                contextId: this.contextId,
-            });
-            return;
+    private getSupportedTransports(
+        requestedTrasnports?: Array<TransportTypes>,
+    ) {
+        let transportNames = requestedTrasnports;
+        if (!transportNames) {
+            transportNames = DEFAULT_TRANSPORTS;
         }
 
-        callback(...args);
-    };
+        const supported = [];
+
+        for (let i = 0; i < transportNames.length; i++) {
+            const transportName = transportNames[i];
+
+            if (TRANSPORT_NAME_MAP[transportName]) {
+                supported.push(TRANSPORT_NAME_MAP[transportName]);
+            }
+        }
+
+        return supported;
+    }
 
     setUnauthorizedCallback(callback: Callback) {
         if (this.transport) {
-            this.unauthorizedCallback = () =>
-                this.ensureValidState(callback, 'unauthorizedCallback');
+            this.unauthorizedCallback = this.ensureValidState.bind(
+                this,
+                callback,
+                'unauthorizedCallback',
+            );
             this.transport.setUnauthorizedCallback(this.unauthorizedCallback);
         }
     }
+
     setStateChangedCallback(callback: Callback) {
         if (this.transport) {
-            this.stateChangedCallback = () =>
-                this.ensureValidState(callback, 'stateChangedCallback');
+            this.stateChangedCallback = this.ensureValidState.bind(
+                this,
+                callback,
+                'stateChangedCallback',
+            );
             this.transport.setStateChangedCallback(this.stateChangedCallback);
         }
     }
 
     setReceivedCallback(callback: Callback) {
         if (this.transport) {
-            this.receiveCallback = () =>
-                this.ensureValidState(callback, 'receivedCallback');
+            this.receiveCallback = this.ensureValidState.bind(
+                this,
+                callback,
+                'receivedCallback',
+            );
             this.transport.setReceivedCallback(this.receiveCallback);
         }
     }
 
     setConnectionSlowCallback(callback: Callback) {
         if (this.transport) {
-            this.connectionSlowCallback = () =>
-                this.ensureValidState(callback, 'connectionSlowCallback');
+            this.connectionSlowCallback = this.ensureValidState.bind(
+                this,
+                callback,
+                'connectionSlowCallback',
+            );
             this.transport.setConnectionSlowCallback(
                 this.connectionSlowCallback,
             );
@@ -272,8 +292,8 @@ class Connection {
 
     updateQuery(
         authToken: string,
-        contextId: number,
-        authExpiry: number,
+        contextId: string,
+        authExpiry?: number,
         forceAuth = false,
     ) {
         this.authToken = authToken;
