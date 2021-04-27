@@ -60,7 +60,10 @@ describe('openapi WebSocket Transport', () => {
                 expect(fetchMock).toBeCalledWith(
                     'testUrl/streamingws/authorize?contextId=0000000000',
                     expect.objectContaining({
-                        headers: { 'X-Request-Id': '1', Authorization: 'TOKEN' },
+                        headers: {
+                            'X-Request-Id': '1',
+                            Authorization: 'TOKEN',
+                        },
                     }),
                 );
 
@@ -141,7 +144,10 @@ describe('openapi WebSocket Transport', () => {
                 expect(fetchMock).toBeCalledWith(
                     'testUrl/streamingws/authorize?contextId=0000000000',
                     expect.objectContaining({
-                        headers: { 'X-Request-Id': '2', Authorization: 'TOKEN' },
+                        headers: {
+                            'X-Request-Id': '2',
+                            Authorization: 'TOKEN',
+                        },
                     }),
                 );
                 fetchMock.resolve(200, {});
@@ -238,7 +244,9 @@ describe('openapi WebSocket Transport', () => {
                     );
                     payload.set(dataBuffer, 17);
 
-                    transport.socket?.onmessage?.({ data: payload.buffer } as any);
+                    transport.socket?.onmessage?.({
+                        data: payload.buffer,
+                    } as any);
 
                     // but now its disconnected.. 5 seconds pass
                     tick(timeAfterMsg);

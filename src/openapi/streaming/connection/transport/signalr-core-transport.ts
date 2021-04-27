@@ -248,7 +248,7 @@ class SignalrCoreTransport {
         };
     }
 
-    start(options: StreamingTransportOptions, onStartCallback: () => void) {
+    start(options: StreamingTransportOptions, onStartCallback?: () => void) {
         if (this.connection) {
             log.warn(
                 LOG_AREA,
