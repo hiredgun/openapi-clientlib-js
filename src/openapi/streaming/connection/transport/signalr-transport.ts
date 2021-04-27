@@ -88,7 +88,7 @@ class SignalrTransport {
         }
     };
 
-    isSupported() {
+    static isSupported() {
         return true;
     }
 
