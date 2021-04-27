@@ -1,11 +1,8 @@
 import log from '../../../../log';
 import * as transportTypes from '../transportTypes';
 import * as constants from '../constants';
-import type {
-    ConnectionState,
-    TransportTypes,
-    ConnectionOptions,
-} from '../types';
+import type { ConnectionState, TransportTypes } from '../types';
+import type { StreamingTransportOptions } from './base-transport';
 import type SignalR from '@microsoft/signalr';
 
 declare global {
@@ -15,11 +12,6 @@ declare global {
 }
 
 type Callback = (...args: any[]) => any;
-
-interface StreamingTransportOptions extends ConnectionOptions {
-    transportType?: TransportTypes;
-    skipNegotiation?: boolean;
-}
 
 type StreamingData = Record<string, unknown> | BufferSource | string;
 
@@ -237,7 +229,9 @@ class SignalrCoreTransport {
 
         if (message.DataFormat === constants.DATA_FORMAT_JSON) {
             try {
-                data = JSON.parse(utf8Decoder.decode(message.Data as BufferSource));
+                data = JSON.parse(
+                    utf8Decoder.decode(message.Data as BufferSource),
+                );
             } catch (error) {
                 error.payload = data;
 

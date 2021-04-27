@@ -1,12 +1,12 @@
-import type { TransportTypes } from '../types';
+import type { TransportTypes, ConnectionOptions } from '../types';
 
 interface Callback {
     (...arg: unknown[]): unknown;
 }
 
-export interface StreamingTransportOptions {
+export interface StreamingTransportOptions extends ConnectionOptions {
+    transportType?: TransportTypes;
     skipNegotiation?: boolean;
-    tarnsportType?: TransportTypes;
 }
 
 export interface StramingTransport {
