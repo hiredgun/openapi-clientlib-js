@@ -62,6 +62,7 @@ class SignalrCoreTransport {
     receivedCallback: (data: StreamingData) => void = NOOP;
     errorCallback = NOOP;
     unauthorizedCallback = NOOP;
+    setConnectionSlowCallback = NOOP;
     transportFailCallback;
 
     utf8Decoder!: TextDecoder;
