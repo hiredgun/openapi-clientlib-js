@@ -276,7 +276,6 @@ function localFetch(method: HTTPMethodType, url: string, options?: Options) {
         });
     }, 30000);
 
-    // @ts-ignore fix-me revisit to map all headers type to Record<string, string>
     return fetch(url, { headers, method, body, credentials })
         .catch(convertFetchReject.bind(null, url, body, timerId))
         .then(convertFetchSuccess.bind(null, url, body, timerId));

@@ -12,6 +12,7 @@ import fetch from '../../../../utils/fetch';
 import type { OAPICallResult } from '../../../../utils/fetch';
 import { getRequestId } from '../../../../utils/request';
 import * as transportTypes from '../transportTypes';
+import type { StreamingTransportInterface } from '../types';
 
 const LOG_AREA = 'PlainWebSocketsTransport';
 
@@ -46,7 +47,7 @@ const NOOP = () => {};
  * @param {function} failCallback - The Fail callback. If invoked, indicates that something went
  *          critically wrong and this transport cannot be used anymore.
  */
-class WebsocketTransport {
+class WebsocketTransport implements StreamingTransportInterface {
     name = transportTypes.PLAIN_WEBSOCKETS;
 
     // WebSocket instance

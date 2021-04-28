@@ -1,8 +1,12 @@
 import log from '../../../../log';
 import * as transportTypes from '../transportTypes';
 import * as constants from '../constants';
-import type { ConnectionState, TransportTypes } from '../types';
-import type { StreamingTransportOptions } from './base-transport';
+import type {
+    ConnectionState,
+    TransportTypes,
+    StreamingTransportOptions,
+    StreamingTransportInterface,
+} from '../types';
 import type SignalR from '@microsoft/signalr';
 
 declare global {
@@ -44,7 +48,7 @@ const renewStatus = {
     SESSION_NOT_FOUND: 2,
 };
 
-class SignalrCoreTransport {
+class SignalrCoreTransport implements StreamingTransportInterface {
     baseUrl = '';
     name = transportTypes.SIGNALR_CORE;
     connection: SignalR.HubConnection | null = null;

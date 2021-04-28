@@ -85,13 +85,12 @@ const LOG_AREA = 'Subscription';
 class Subscription {
     UPDATE_TYPE_SNAPSHOT = 1 as const;
     UPDATE_TYPE_DELTA = 2 as const;
-    // FIXME consider making those constants static - BREAKING CHANGE
+
     STATE_SUBSCRIBE_REQUESTED = 1 as const;
     STATE_SUBSCRIBED = 2 as const;
     STATE_UNSUBSCRIBE_REQUESTED = 4 as const;
     STATE_UNSUBSCRIBED = 8 as const;
     STATE_PATCH_REQUESTED = 16 as const;
-    // FIXME this const was originally undefined - verify why
     STATE_READY_FOR_UNSUBSCRIBE_BY_TAG = 32 as const;
 
     TRANSITIONING_STATES =

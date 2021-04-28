@@ -1,6 +1,7 @@
 import log from '../../../../log';
 import * as transportTypes from '../transportTypes';
 import * as constants from '../constants';
+import type { StreamingTransportInterface } from '../types';
 
 const LOG_AREA = 'SignalRTransport';
 const NOOP = () => {};
@@ -10,7 +11,7 @@ type Callback = (...args: any) => any;
 /**
  * SignalR Transport which supports both webSocket and longPolling with internal fallback mechanism.
  */
-class SignalrTransport {
+class SignalrTransport implements StreamingTransportInterface {
     name = transportTypes.LEGACY_SIGNALR;
     transport = null;
     stateChangedCallback: (arg0?: number | null) => void | number = NOOP;
@@ -108,8 +109,8 @@ class SignalrTransport {
         this.connection.connectionSlow(callback);
     }
 
-    start(options: SignalR.ConnectionOptions, callback: Callback) {
-        this.connection.start(options, callback);
+    start(options: SignalR.ConnectionOptions, callback?: Callback) {
+        this.connection.start(options, callback || NOOP);
     }
 
     stop() {
@@ -123,7 +124,7 @@ class SignalrTransport {
     }
 
     getQuery() {
-        return this.connection.qs;
+        return this.connection.qs as string;
     }
 
     getTransport() {
