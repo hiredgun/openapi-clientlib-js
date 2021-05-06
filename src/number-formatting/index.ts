@@ -13,7 +13,7 @@ export type NumberOptions = Readonly<{
     unitSuffixThousand: string;
     unitSuffixMillion: string;
     unitSuffixBillion: string;
-}>
+}>;
 
 interface InternalOptions {
     negativePre: string;

@@ -238,7 +238,11 @@ function getBody(
  *                             "same-origin" will include the cookies if on the same domain (this is the XmlHttpRequest default)
  *                             "include" will always include the cookies.
  */
-function localFetch(httMethod: HTTPMethodType | Uppercase<HTTPMethodType>, url: string, options?: Options): Promise<any> {
+function localFetch(
+    httMethod: HTTPMethodType | Uppercase<HTTPMethodType>,
+    url: string,
+    options?: Options,
+): Promise<any> {
     let method = httMethod.toLowerCase() as HTTPMethodType;
     let body = getBody(method, options);
     const headers = options?.headers || {};
