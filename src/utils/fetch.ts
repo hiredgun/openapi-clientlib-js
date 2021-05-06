@@ -10,7 +10,7 @@ export type HTTPMethodType =
     | 'head';
 
 export interface OAPICallResult {
-    response?: string | Blob | Record<string, unknown>;
+    response?: any;
     status: number;
     headers: Headers;
     size: number;
@@ -223,7 +223,7 @@ function getBody(
  * Performs a fetch and processes the response.
  * All non 200 responses are converted to rejections. The body can be an object and will be JSON.stringified and the right header added.
  * All responses that contain JSON are converted to objects.
- * @param {string} method - The http method.
+ * @param {string} httMethod - The http method.
  * @param {string} url - The url to fetch.
  * @param {Object} [options]
  * @param {string|Object} [options.body] - The body of the request. If this is an object, that is not already handled by the body mixin,
@@ -238,7 +238,8 @@ function getBody(
  *                             "same-origin" will include the cookies if on the same domain (this is the XmlHttpRequest default)
  *                             "include" will always include the cookies.
  */
-function localFetch(method: HTTPMethodType, url: string, options?: Options) {
+function localFetch(httMethod: HTTPMethodType | Uppercase<HTTPMethodType>, url: string, options?: Options): Promise<any> {
+    let method = httMethod.toLowerCase() as HTTPMethodType;
     let body = getBody(method, options);
     const headers = options?.headers || {};
     const cache = options?.cache;
