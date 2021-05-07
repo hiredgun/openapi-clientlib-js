@@ -7,9 +7,10 @@ import type {
     TransportTypes,
     ConnectionOptions,
     ConnectionState,
+    StreamingTransportInterface,
 } from './types';
 
-type Callback = (...args: unknown[]) => unknown | void;
+type Callback = (...args: any[]) => unknown | void;
 
 const LOG_AREA = 'Connection';
 const DEFAULT_TRANSPORTS = [
@@ -63,20 +64,21 @@ const STATE_DISPOSED = 'connection-state-disposed';
 class Connection {
     baseUrl: string;
     failCallback: Callback;
-    startCallback: Callback | undefined = NOOP;
+    startCallback = NOOP;
     stateChangedCallback = NOOP;
     receiveCallback = NOOP;
     connectionSlowCallback = NOOP;
     authToken: string | null = null;
     authExpiry: number | null | undefined = null;
     contextId: string | null = null;
-    options;
-    // FIXME use correct type once streaming/connection/transports are migrated
-    transports: any;
+    options: ConnectionOptions;
+    transports: Array<
+        typeof TRANSPORT_NAME_MAP[keyof typeof TRANSPORT_NAME_MAP]
+    >;
     state = STATE_CREATED;
     transportIndex: number | null = null;
-    transport: any;
-    unauthorizedCallback: Callback | undefined;
+    transport: StreamingTransportInterface | null;
+    unauthorizedCallback = NOOP;
 
     constructor(
         options: ConnectionOptions,
@@ -127,7 +129,7 @@ class Connection {
         if (this.state === STATE_DISPOSED) {
             log.warn(LOG_AREA, 'callback called after transport was disposed', {
                 callback: callbackType,
-                transport: this.transport.name,
+                transport: this.transport?.name,
                 contextId: this.contextId,
             });
             return;
@@ -166,8 +168,8 @@ class Connection {
 
         if (this.state === STATE_STARTED) {
             this.transport.updateQuery(
-                this.authToken,
-                this.contextId,
+                this.authToken as string,
+                this.contextId as string,
                 this.authExpiry,
             );
             const transportOptions = {
@@ -178,8 +180,9 @@ class Connection {
         }
     };
 
-    // @ts-expect-error FIXME use proper types once signal-r transports are migrated
-    private createTransport(baseUrl: string) {
+    private createTransport(
+        baseUrl: string,
+    ): StreamingTransportInterface | null {
         if (this.transportIndex === null || this.transportIndex === undefined) {
             this.transportIndex = 0;
         } else {
@@ -320,12 +323,12 @@ class Connection {
 
     getQuery() {
         if (this.transport) {
-            return this.transport.getQuery();
+            return this.transport.getQuery?.();
         }
     }
 
     onOrphanFound() {
-        if (this.transport && this.transport.onOrphanFound) {
+        if (this.transport?.onOrphanFound) {
             this.transport.onOrphanFound();
         }
     }
@@ -340,13 +343,14 @@ class Connection {
      * Get underlying transport
      * @returns {*}
      */
-    getTransport() {
+    getTransport(): StreamingTransportInterface | null {
         if (!this.transport) {
             return null;
         }
 
         // Legacy check for SignalR transport.
         if (this.transport.hasOwnProperty('getTransport')) {
+            // @ts-expect-error - transport exists
             return this.transport.getTransport();
         }
 
