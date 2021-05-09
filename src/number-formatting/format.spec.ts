@@ -4,7 +4,7 @@ import type { NumberFormattingOptions } from '.';
 
 function formatNumberNoRounding(
     number: number,
-    minDecimals: number,
+    minDecimals?: number,
     maxDecimals?: number,
 ) {
     const numbers = new NumberFormatting();
@@ -20,7 +20,7 @@ function shortFormat(
 }
 
 function formatNumber(
-    number: number,
+    number: number | null | undefined | string,
     decimals?: number,
     options?: Partial<NumberFormattingOptions>,
 ) {
@@ -143,13 +143,11 @@ describe('NumberFormatting format', () => {
             expect(formatNumber(545750.43893783)).toEqual('545,750.43893783');
         });
         it('handles non numbers', () => {
-            // @ts-expect-error - we expect number but test that undefined is handled gracefully
             expect(formatNumber(undefined, 2, en_us)).toEqual('');
             expect(formatNumber(NaN, 2, en_us)).toEqual('');
-            // @ts-expect-error - we expect number but test that null is handled gracefully
             expect(formatNumber(null, 2, en_us)).toEqual('');
-            // @ts-expect-error - we expect number but test that empty string is handled gracefully
             expect(formatNumber('', 2, en_us)).toEqual('');
+            expect(formatNumber('string', 2, en_us)).toEqual('');
         });
         it('uses away from zero rounding', () => {
             expect(formatNumber(-1.5, 0, en_us)).toEqual('-2');

@@ -119,7 +119,7 @@ class PriceFormatting {
      */
     parse(
         str: string,
-        decimals: number,
+        decimals: number | null | undefined,
         formatFlags?:
             | PriceFormatOption
             | PriceFormatOption[]

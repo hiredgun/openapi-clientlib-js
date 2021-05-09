@@ -250,7 +250,7 @@ function localFetch(
     httMethod: HTTPMethodType | Uppercase<HTTPMethodType>,
     url: string,
     options?: Options,
-): Promise<any> {
+) {
     let method = httMethod.toLowerCase() as HTTPMethodType;
     let body = getBody(method, options);
     const headers = options?.headers || {};

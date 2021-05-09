@@ -72,7 +72,7 @@ class NumberFormatting implements NumberFormattingOptions {
      * @param value - The number to parse.
      * @returns  parsed value
      */
-    parse(value: string) {
+    parse(value: string | null | undefined) {
         return parseNumber(value, this);
     }
 
@@ -84,9 +84,10 @@ class NumberFormatting implements NumberFormattingOptions {
      *                              decimal places it needs to display the number (upto 8).
      *
      */
-    format(num: number, decimals?: number) {
+    format(num: number | null | undefined | string, decimals?: number | null) {
         if (decimals === undefined || decimals === null) {
-            decimals = this.getActualDecimals(num);
+            decimals =
+                typeof num === 'number' ? this.getActualDecimals(num) : 0;
         }
 
         return formatNumber(num, decimals, this);
