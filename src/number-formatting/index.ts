@@ -11,13 +11,13 @@ export type NumberOptions = Readonly<{
      * @example
      * [3] would be thousands separator and produce 123.456.789,00 where as [2,3] would be "12.34.56.789,00".
      */
-    groupSizes: number[];
+    groupSizes: Readonly<number[]>;
     /**
      * The character used for group separation E.g. '.' in Danish.
      */
     groupSeparator: string;
     /**
-     * The character used for decimal searation E.g.',' in Danish.
+     * The character used for decimal separation E.g.',' in Danish.
      */
     decimalSeparator: string;
     /**

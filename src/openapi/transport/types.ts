@@ -40,4 +40,4 @@ export interface TransportCoreOptions {
 }
 
 // eslint-disable-next-line max-len
-export type HTTPMethodInputArgs = [string | undefined, string | undefined, StringTemplateArgs | undefined, TransportCoreOptions | undefined];
+export type HTTPMethodInputArgs = [string, string, StringTemplateArgs | undefined, TransportCoreOptions | undefined];

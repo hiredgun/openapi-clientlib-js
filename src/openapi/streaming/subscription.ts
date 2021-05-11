@@ -63,7 +63,7 @@ export interface SubscriptionArgs {
     /**
      * The format for the subscription (passed to OpenAPI).
      */
-    Format?: string;
+    Format?: string | null;
     /**
      * The subscription arguments (passed to OpenAPI).
      */
@@ -180,7 +180,7 @@ class Subscription {
     onUpdate;
     onError;
     onQueueEmpty;
-    headers: Record<string, any> | undefined;
+    headers: Record<string, string> | undefined;
     onNetworkError;
     connectionAvailable;
     currentState: SubscriptionState = this.STATE_UNSUBSCRIBED;

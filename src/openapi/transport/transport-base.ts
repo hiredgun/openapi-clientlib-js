@@ -2,12 +2,12 @@ import type { TransportCoreOptions } from './types';
 import type { OAPICallResult, HTTPMethodType } from '../../utils/fetch';
 import type { StringTemplateArgs } from '../../utils/string';
 
-type HTTPMethod = (
-    servicePath?: string,
-    urlTemplate?: string,
+type HTTPMethod<Response = any> = (
+    servicePath: string,
+    urlTemplate: string,
     templateArgs?: StringTemplateArgs,
     options?: TransportCoreOptions,
-) => Promise<OAPICallResult>;
+) => Promise<OAPICallResult<Response>>;
 
 export interface ITransport {
     dispose: () => void;
@@ -23,14 +23,19 @@ export interface ITransport {
 abstract class TransportBase implements ITransport {
     abstract dispose(): void;
 
-    abstract prepareTransportMethod(
+    protected abstract prepareTransportMethod(
         method: HTTPMethodType,
-    ): (
-        servicePath?: string,
-        urlTemplate?: string,
-        templateArgs?: StringTemplateArgs,
-        options?: TransportCoreOptions,
-    ) => Promise<OAPICallResult>;
+    ): HTTPMethod;
+
+    // the methods below are initialised separately so that we can make
+    // public http equivalent methods generic (add possibility to specify response type)
+    private _getMethod = this.prepareTransportMethod('get');
+    private _postMethod = this.prepareTransportMethod('post');
+    private _putMethod = this.prepareTransportMethod('put');
+    private _deleteMethod = this.prepareTransportMethod('delete');
+    private _patchMethod = this.prepareTransportMethod('patch');
+    private _headMethod = this.prepareTransportMethod('head');
+    private _optionsMethod = this.prepareTransportMethod('options');
 
     /**
      * Does a get request against open api.
@@ -86,7 +91,14 @@ abstract class TransportBase implements ITransport {
      * });
      * ```
      */
-    get = this.prepareTransportMethod('get');
+    get<Response = any>(
+        servicePath: string,
+        urlTemplate: string,
+        templateArgs?: StringTemplateArgs,
+        options?: TransportCoreOptions,
+    ): Promise<OAPICallResult<Response>> {
+        return this._getMethod(servicePath, urlTemplate, templateArgs, options);
+    }
 
     /**
      * Does a post request against open api.
@@ -144,7 +156,19 @@ abstract class TransportBase implements ITransport {
      * });
      * ```
      */
-    post = this.prepareTransportMethod('post');
+    post<Response = any>(
+        servicePath: string,
+        urlTemplate: string,
+        templateArgs?: StringTemplateArgs,
+        options?: TransportCoreOptions,
+    ): Promise<OAPICallResult<Response>> {
+        return this._postMethod(
+            servicePath,
+            urlTemplate,
+            templateArgs,
+            options,
+        );
+    }
 
     /**
      * Does a put request against open api.
@@ -202,7 +226,14 @@ abstract class TransportBase implements ITransport {
      * });
      * ```
      */
-    put = this.prepareTransportMethod('put');
+    put<Response = any>(
+        servicePath: string,
+        urlTemplate: string,
+        templateArgs?: StringTemplateArgs,
+        options?: TransportCoreOptions,
+    ): Promise<OAPICallResult<Response>> {
+        return this._putMethod(servicePath, urlTemplate, templateArgs, options);
+    }
 
     /**
      * Does a delete request against open api.
@@ -258,7 +289,19 @@ abstract class TransportBase implements ITransport {
      * });
      * ```
      */
-    delete = this.prepareTransportMethod('delete');
+    delete<Response = any>(
+        servicePath: string,
+        urlTemplate: string,
+        templateArgs?: StringTemplateArgs,
+        options?: TransportCoreOptions,
+    ): Promise<OAPICallResult<Response>> {
+        return this._deleteMethod(
+            servicePath,
+            urlTemplate,
+            templateArgs,
+            options,
+        );
+    }
 
     /**
      * Does a patch request against open api.
@@ -316,7 +359,19 @@ abstract class TransportBase implements ITransport {
      * });
      * ```
      */
-    patch = this.prepareTransportMethod('patch');
+    patch<Response = any>(
+        servicePath: string,
+        urlTemplate: string,
+        templateArgs?: StringTemplateArgs,
+        options?: TransportCoreOptions,
+    ): Promise<OAPICallResult<Response>> {
+        return this._patchMethod(
+            servicePath,
+            urlTemplate,
+            templateArgs,
+            options,
+        );
+    }
 
     /**
      * Does a head request against open api.
@@ -373,7 +428,19 @@ abstract class TransportBase implements ITransport {
      * });
      * ```
      */
-    head = this.prepareTransportMethod('head');
+    head<Response = any>(
+        servicePath: string,
+        urlTemplate: string,
+        templateArgs?: StringTemplateArgs,
+        options?: TransportCoreOptions,
+    ): Promise<OAPICallResult<Response>> {
+        return this._headMethod(
+            servicePath,
+            urlTemplate,
+            templateArgs,
+            options,
+        );
+    }
 
     /**
      * Does an options request against open api.
@@ -431,7 +498,19 @@ abstract class TransportBase implements ITransport {
      * });
      * ```
      */
-    options = this.prepareTransportMethod('options');
+    options<Response = any>(
+        servicePath: string,
+        urlTemplate: string,
+        templateArgs?: StringTemplateArgs,
+        options?: TransportCoreOptions,
+    ): Promise<OAPICallResult<Response>> {
+        return this._optionsMethod(
+            servicePath,
+            urlTemplate,
+            templateArgs,
+            options,
+        );
+    }
 }
 
 export default TransportBase;

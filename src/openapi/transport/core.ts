@@ -41,8 +41,8 @@ class TransportCore extends TransportBase {
 
     prepareTransportMethod(method: HTTPMethodType) {
         return (
-            servicePath?: string,
-            urlTemplate?: string,
+            servicePath: string,
+            urlTemplate: string,
             templateArgs?: StringTemplateArgs,
             options?: TransportCoreOptions,
         ) => {
