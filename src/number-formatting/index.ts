@@ -86,7 +86,10 @@ class NumberFormatting implements NumberFormattingOptions {
      */
     format(num: number | null | undefined | string, decimals?: number | null) {
         if (decimals === undefined || decimals === null) {
-            decimals = num == undefined ? 0 : this.getActualDecimals(num);
+            decimals =
+                num === undefined || num === null
+                    ? 0
+                    : this.getActualDecimals(num);
         }
 
         return formatNumber(num, decimals, this);
@@ -119,11 +122,11 @@ class NumberFormatting implements NumberFormattingOptions {
 
     /**
      * Formats a number into a short format, e.g. 10.000 becomes 10k.
-     * @param number - number
+     * @param number - number to format
      *
      */
-    shortFormat(number: number | null | undefined) {
-        if (number == undefined) {
+    shortFormat(number: number | string | null | undefined) {
+        if (number === undefined || number === null) {
             return '';
         }
         return shortFormat(number, this);
@@ -131,7 +134,7 @@ class NumberFormatting implements NumberFormattingOptions {
 
     /**
      * Returns the actual number of decimals that a number has.
-     * @param number | string - number or numeric string
+     * @param number - number or numeric string
      */
     getActualDecimals(number: number | string) {
         number = Math.abs(Number(number));

@@ -12,7 +12,7 @@ function formatNumberNoRounding(
 }
 
 function shortFormat(
-    number: number | undefined | null,
+    number: number | undefined | null | string,
     options?: Partial<NumberFormattingOptions>,
 ) {
     const numbers = new NumberFormatting(options);
@@ -121,9 +121,17 @@ describe('NumberFormatting format', () => {
             ).toEqual('1Bn');
         });
 
-        it('returns an empty string for null or undefined', () => {
+        it('returns an empty string for null or undefined or not numeric strings', () => {
             expect(shortFormat(null)).toBe('');
             expect(shortFormat(undefined)).toBe('');
+        });
+
+        it('returns proper value for numeric strings', () => {
+            expect(shortFormat('100000000.11')).toBe('100m');
+            expect(shortFormat('999500000')).toBe('1bn');
+            expect(shortFormat('999500000', { unitSuffixBillion: 'Bn' })).toBe(
+                '1Bn',
+            );
         });
     });
 
