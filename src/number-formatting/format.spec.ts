@@ -12,7 +12,7 @@ function formatNumberNoRounding(
 }
 
 function shortFormat(
-    number: number,
+    number: number | undefined | null,
     options?: Partial<NumberFormattingOptions>,
 ) {
     const numbers = new NumberFormatting(options);
@@ -120,6 +120,11 @@ describe('NumberFormatting format', () => {
                 shortFormat(1000000000, { unitSuffixBillion: 'Bn' }),
             ).toEqual('1Bn');
         });
+
+        it('returns an empty string for null or undefined', () => {
+            expect(shortFormat(null)).toBe('');
+            expect(shortFormat(undefined)).toBe('');
+        });
     });
 
     describe('formatNumber', () => {
@@ -144,10 +149,18 @@ describe('NumberFormatting format', () => {
         });
         it('handles non numbers', () => {
             expect(formatNumber(undefined, 2, en_us)).toEqual('');
+            expect(formatNumber(undefined)).toEqual('');
+            expect(formatNumber(null)).toEqual('');
             expect(formatNumber(NaN, 2, en_us)).toEqual('');
             expect(formatNumber(null, 2, en_us)).toEqual('');
             expect(formatNumber('', 2, en_us)).toEqual('');
             expect(formatNumber('string', 2, en_us)).toEqual('');
+            expect(formatNumber('string')).toEqual('');
+        });
+        it('handles numeric strings properly', () => {
+            expect(formatNumber('1.3')).toEqual('1.3');
+            expect(formatNumber('2.5', 2)).toEqual('2.50');
+            expect(formatNumber('2.4', 0)).toEqual('2');
         });
         it('uses away from zero rounding', () => {
             expect(formatNumber(-1.5, 0, en_us)).toEqual('-2');

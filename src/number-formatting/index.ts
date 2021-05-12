@@ -86,8 +86,7 @@ class NumberFormatting implements NumberFormattingOptions {
      */
     format(num: number | null | undefined | string, decimals?: number | null) {
         if (decimals === undefined || decimals === null) {
-            decimals =
-                typeof num === 'number' ? this.getActualDecimals(num) : 0;
+            decimals = num == undefined ? 0 : this.getActualDecimals(num);
         }
 
         return formatNumber(num, decimals, this);
@@ -123,17 +122,19 @@ class NumberFormatting implements NumberFormattingOptions {
      * @param number - number
      *
      */
-    shortFormat(number: number) {
+    shortFormat(number: number | null | undefined) {
+        if (number == undefined) {
+            return '';
+        }
         return shortFormat(number, this);
     }
 
     /**
      * Returns the actual number of decimals that a number has.
-     * @param number - number
-     *
+     * @param number | string - number or numeric string
      */
-    getActualDecimals(number: number) {
-        number = Math.abs(number);
+    getActualDecimals(number: number | string) {
+        number = Math.abs(Number(number));
         return (number - Math.floor(number))
             .toFixed(8)
             .substring(2, 10)
