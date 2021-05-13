@@ -22,7 +22,13 @@ import Streaming from './openapi/streaming/streaming';
 import * as streamingTransports from './openapi/streaming/connection/transportTypes';
 import AuthProvider from './openapi/authProvider';
 
-export type { OAPICallResult } from './utils/fetch';
+export type {
+    OAPIRequestResult,
+    QueryParams,
+    StringTemplateArgs,
+    HTTPMethod,
+    RequestOptions,
+} from './types';
 export type { default as TransportCore } from './openapi/transport/core';
 export type { default as TransportAuth } from './openapi/transport/auth';
 export type { default as TransportBatch } from './openapi/transport/batch';
@@ -36,7 +42,6 @@ export type { default as PriceFormatting } from './price-formatting';
 export type { default as priceFormatOptions } from './price-formatting/format-options';
 export type { default as NumberFormatting } from './number-formatting';
 export type { default as MicroEmitter } from './micro-emitter';
-export type { TransportCoreOptions } from './openapi/transport/types';
 
 export default {
     log,
