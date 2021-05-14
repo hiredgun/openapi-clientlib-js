@@ -3,7 +3,7 @@ import NumberFormatting from '.';
 import type { NumberFormattingOptions } from '.';
 
 function formatNumberNoRounding(
-    number: number,
+    number: number | string | null | undefined,
     minDecimals?: number,
     maxDecimals?: number,
 ) {
@@ -21,11 +21,15 @@ function shortFormat(
 
 function formatNumber(
     number: number | null | undefined | string,
-    decimals?: number,
+    decimals?: number | null,
     options?: Partial<NumberFormattingOptions>,
 ) {
     const numbers = new NumberFormatting(options);
     return numbers.format(number, decimals);
+}
+function getActualDecimals(number: number) {
+    const numbers = new NumberFormatting();
+    return numbers.getActualDecimals(number);
 }
 
 describe('NumberFormatting format', () => {
@@ -51,6 +55,15 @@ describe('NumberFormatting format', () => {
             expect(formatNumberNoRounding(-1.126, 1, 2)).toEqual('-1.13');
             expect(formatNumberNoRounding(-1.1, 4, 5)).toEqual('-1.1000');
             expect(formatNumberNoRounding(-5e-7, 4, 8)).toEqual('-0.0000005');
+        });
+        it('handles numeric strings', () => {
+            expect(formatNumberNoRounding('1.1', 4)).toEqual('1.1000');
+            expect(formatNumberNoRounding('1.1212', 1)).toEqual('1.1212');
+        });
+        it('returns empty string for invalid number', () => {
+            expect(formatNumberNoRounding(undefined, 1)).toEqual('');
+            expect(formatNumberNoRounding(null, 1, 2)).toEqual('');
+            expect(formatNumberNoRounding('foo', 1, 5)).toEqual('');
         });
     });
 
@@ -196,6 +209,15 @@ describe('NumberFormatting format', () => {
             expect(formatNumber(0.01, 1, en_us)).toEqual('0.0');
             expect(formatNumber(5e-7, 6, en_us)).toEqual('0.000001');
             expect(formatNumber(-5e-7, 6, en_us)).toEqual('-0.000001');
+        });
+    });
+    describe('getActualDecimals', () => {
+        it('returns proper number of decimals', () => {
+            expect(getActualDecimals(545750.43)).toEqual(2);
+            expect(getActualDecimals(1.756)).toEqual(3);
+            expect(getActualDecimals(1)).toEqual(0);
+            expect(getActualDecimals(0)).toEqual(0);
+            expect(getActualDecimals(0)).toEqual(0);
         });
     });
 });

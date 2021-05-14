@@ -37,7 +37,7 @@ class PriceFormatting {
      * @returns The formatting string.
      */
     format(
-        value: number,
+        value: number | undefined | null | string,
         decimals: number,
         formatOptions?:
             | PriceFormatOption
@@ -67,7 +67,7 @@ class PriceFormatting {
      * @returns formatted price parts.
      */
     formatPriceParts(
-        value: number,
+        value: number | undefined | null | string,
         decimals: number,
         formatOptions?: PriceFormatOption | PriceFormatOption[] | FormatFlags,
         numeratorDecimals?: number,

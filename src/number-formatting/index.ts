@@ -89,7 +89,7 @@ class NumberFormatting implements NumberFormattingOptions {
             decimals =
                 num === undefined || num === null
                     ? 0
-                    : this.getActualDecimals(num);
+                    : this.getActualDecimals(Number(num));
         }
 
         return formatNumber(num, decimals, this);
@@ -100,9 +100,17 @@ class NumberFormatting implements NumberFormattingOptions {
      * @param num - The number to format
      * @param minDecimals - (optional) The minimum number of decimals to display after the decimal point.
      * @param maxDecimals - (optional) The maximum number of decimals to display after the decimal point.
-     *
+     * @returns formatted number string or an empty string when an invalid number was provided
      */
-    formatNoRounding(num: number, minDecimals?: number, maxDecimals?: number) {
+    formatNoRounding(
+        num: number | null | undefined | string,
+        minDecimals?: number | null,
+        maxDecimals?: number | null,
+    ) {
+        if (num === null || num === undefined) {
+            return '';
+        }
+
         if (!minDecimals) {
             minDecimals = 0;
         }
@@ -114,7 +122,7 @@ class NumberFormatting implements NumberFormattingOptions {
             num,
             Math.min(
                 maxDecimals,
-                Math.max(minDecimals, this.getActualDecimals(num)),
+                Math.max(minDecimals, this.getActualDecimals(Number(num))),
             ),
             this,
         );
@@ -136,7 +144,7 @@ class NumberFormatting implements NumberFormattingOptions {
      * Returns the actual number of decimals that a number has.
      * @param number - number or numeric string
      */
-    getActualDecimals(number: number | string) {
+    getActualDecimals(number: number) {
         number = Math.abs(Number(number));
         return (number - Math.floor(number))
             .toFixed(8)
