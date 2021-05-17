@@ -12,7 +12,7 @@ import type { QueuedItem } from './subscription-queue';
 import ParserFacade from './parser/parser-facade';
 import type { ITransport } from '../transport/transport-base';
 import type { RequestOptions } from '../../types';
-import type { StreamingUpdateMessage } from './connection/types';
+import type { StreamingMessage } from './connection/types';
 
 const updateTypes = {
     UPDATE_TYPE_SNAPSHOT: 1,
@@ -183,7 +183,7 @@ class Subscription {
     onNetworkError;
     connectionAvailable;
     currentState: SubscriptionState = this.STATE_UNSUBSCRIBED;
-    updatesBeforeSubscribed: null | StreamingUpdateMessage[] = null;
+    updatesBeforeSubscribed: null | StreamingMessage[] = null;
     networkErrorSubscribingTimer: null | ReturnType<typeof setTimeout> = null;
     inactivityTimeout: number | undefined;
     latestActivity: number | undefined;
@@ -842,10 +842,7 @@ class Subscription {
         }
     }
 
-    processUpdate(
-        message: StreamingUpdateMessage,
-        type: SubscriptionUpdateTypes,
-    ) {
+    processUpdate(message: StreamingMessage, type: SubscriptionUpdateTypes) {
         let nextMessage;
         try {
             nextMessage = {
@@ -1044,7 +1041,7 @@ class Subscription {
      * Handles the 'data' event raised by Streaming.
      * @returns  false if the update is not for this subscription
      */
-    onStreamingData(message: StreamingUpdateMessage): false | void {
+    onStreamingData(message: StreamingMessage): false | void {
         this.onActivity();
 
         switch (this.currentState) {

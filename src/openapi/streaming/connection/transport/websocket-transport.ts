@@ -15,7 +15,7 @@ import * as transportTypes from '../transportTypes';
 import type {
     DataFormat,
     StreamingTransportInterface,
-    StreamingUpdateMessage,
+    StreamingMessage,
 } from '../types';
 
 const LOG_AREA = 'PlainWebSocketsTransport';
@@ -80,7 +80,7 @@ class WebsocketTransport implements StreamingTransportInterface {
     failCallback: Callback;
     logCallback = NOOP;
     stateChangedCallback: Callback = NOOP;
-    receivedCallback: (data: StreamingUpdateMessage[]) => void = NOOP;
+    receivedCallback: (data: StreamingMessage[]) => void = NOOP;
     connectionSlowCallback = NOOP;
     startedCallback = NOOP;
     closeCallback = NOOP;
@@ -128,7 +128,7 @@ class WebsocketTransport implements StreamingTransportInterface {
 
     private parseMessage(rawData: ArrayBuffer) {
         let index = 0;
-        const messages: StreamingUpdateMessage[] = [];
+        const messages: StreamingMessage[] = [];
 
         while (index < rawData.byteLength) {
             const message = new DataView(rawData);

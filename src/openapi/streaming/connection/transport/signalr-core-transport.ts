@@ -6,7 +6,7 @@ import type {
     TransportTypes,
     StreamingTransportOptions,
     StreamingTransportInterface,
-    StreamingUpdateMessage,
+    StreamingMessage,
     StreamingData,
 } from '../types';
 import type SignalR from '@microsoft/signalr';
@@ -53,7 +53,7 @@ class SignalrCoreTransport implements StreamingTransportInterface {
     state: ConnectionState = constants.CONNECTION_STATE_DISCONNECTED;
 
     stateChangedCallback: (state: ConnectionState) => void = NOOP;
-    receivedCallback: (data: StreamingUpdateMessage) => void = NOOP;
+    receivedCallback: (data: StreamingMessage) => void = NOOP;
     errorCallback = NOOP;
     unauthorizedCallback = NOOP;
     setConnectionSlowCallback = NOOP;
@@ -178,7 +178,7 @@ class SignalrCoreTransport implements StreamingTransportInterface {
     private normalizeMessage = (
         message: RawCoreSignalRStreamingMessage,
         protocol: SignalR.IHubProtocol,
-    ): StreamingUpdateMessage => {
+    ): StreamingMessage => {
         const { ReferenceId, PayloadFormat, Payload, MessageId } = message;
 
         let dataFormat;
@@ -213,9 +213,9 @@ class SignalrCoreTransport implements StreamingTransportInterface {
     };
 
     private parseMessage(
-        message: StreamingUpdateMessage,
+        message: StreamingMessage,
         utf8Decoder: TextDecoder,
-    ): StreamingUpdateMessage {
+    ): StreamingMessage {
         const { ReferenceId, DataFormat, MessageId } = message;
         let data = message.Data;
 
@@ -605,7 +605,7 @@ class SignalrCoreTransport implements StreamingTransportInterface {
         this.stateChangedCallback = callback;
     }
 
-    setReceivedCallback(callback: (data: StreamingUpdateMessage) => void) {
+    setReceivedCallback(callback: (data: StreamingMessage) => void) {
         this.receivedCallback = callback;
     }
 

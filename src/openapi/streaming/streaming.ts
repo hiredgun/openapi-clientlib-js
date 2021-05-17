@@ -12,7 +12,7 @@ import type {
     TransportTypes,
     ConnectionOptions,
     ConnectionState,
-    StreamingUpdateMessage,
+    StreamingMessage,
     Heartbeats,
 } from './connection/types';
 import type AuthProvider from '../authProvider';
@@ -20,7 +20,7 @@ import type ParserBase from './parser/parser-base';
 import type { IHubProtocol } from '@microsoft/signalr';
 import type { ITransport } from '../transport/transport-base';
 
-type HeartbeatsControlMessage = StreamingUpdateMessage<
+type HeartbeatsControlMessage = StreamingMessage<
     {
         Heartbeats: Heartbeats[];
         ReferenceId: typeof OPENAPI_CONTROL_MESSAGE_HEARTBEAT;
@@ -28,14 +28,14 @@ type HeartbeatsControlMessage = StreamingUpdateMessage<
     typeof OPENAPI_CONTROL_MESSAGE_HEARTBEAT
 >;
 
-type ResetControlMessage = StreamingUpdateMessage<
+type ResetControlMessage = StreamingMessage<
     {
         TargetReferenceIds: string[];
     }[],
     typeof OPENAPI_CONTROL_MESSAGE_RESET_SUBSCRIPTIONS
 >;
 
-type ConnectionControlMessage = StreamingUpdateMessage<
+type ConnectionControlMessage = StreamingMessage<
     any,
     | typeof OPENAPI_CONTROL_MESSAGE_RECONNECT
     | typeof OPENAPI_CONTROL_MESSAGE_DISCONNECT
@@ -529,7 +529,7 @@ class Streaming extends MicroEmitter {
         this.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
     }
 
-    private processUpdate(update: StreamingUpdateMessage) {
+    private processUpdate(update: StreamingMessage) {
         try {
             if (update.ReferenceId[0] === OPENAPI_CONTROL_MESSAGE_PREFIX) {
                 this.handleControlMessage(update as ControlMessage);
@@ -552,9 +552,7 @@ class Streaming extends MicroEmitter {
      * handles the connection received event from SignalR
      * @param updates - updates
      */
-    private onReceived(
-        updates: StreamingUpdateMessage | Array<StreamingUpdateMessage>,
-    ) {
+    private onReceived(updates: StreamingMessage | Array<StreamingMessage>) {
         if (!updates) {
             log.warn(LOG_AREA, 'onReceived called with no data', updates);
             return;
@@ -589,7 +587,7 @@ class Streaming extends MicroEmitter {
      * Sends an update to a subscription by finding it and calling its callback
      * @param update - update
      */
-    private sendDataUpdateToSubscribers(update: StreamingUpdateMessage) {
+    private sendDataUpdateToSubscribers(update: StreamingMessage) {
         const subscription = this.findSubscriptionByReferenceId(
             update.ReferenceId,
         );

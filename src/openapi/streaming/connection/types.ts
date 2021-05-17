@@ -21,7 +21,7 @@ interface Callback {
 }
 
 export interface ReceiveCallback {
-    (data: StreamingUpdateMessage): void;
+    (data: StreamingMessage): void;
 }
 
 export interface StateChangeCallback {
@@ -73,7 +73,7 @@ export interface Heartbeats {
     Reason: string;
 }
 
-export interface StreamingUpdateMessage<T = StreamingData, R = string> {
+export interface StreamingMessage<T = StreamingData, R = string> {
     ReferenceId: R;
     MessageId?: string | null;
     ReservedField?: number;
