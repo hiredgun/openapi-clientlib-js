@@ -145,7 +145,7 @@ class NumberFormatting implements NumberFormattingOptions {
      * @param number - number or numeric string
      */
     getActualDecimals(number: number) {
-        number = Math.abs(Number(number));
+        number = Math.abs(number);
         return (number - Math.floor(number))
             .toFixed(8)
             .substring(2, 10)
