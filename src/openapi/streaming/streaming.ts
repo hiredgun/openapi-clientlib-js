@@ -12,11 +12,39 @@ import type {
     TransportTypes,
     ConnectionOptions,
     ConnectionState,
+    StreamingUpdateMessage,
+    Heartbeats,
 } from './connection/types';
 import type AuthProvider from '../authProvider';
 import type ParserBase from './parser/parser-base';
 import type { IHubProtocol } from '@microsoft/signalr';
 import type { ITransport } from '../transport/transport-base';
+
+type HeartbeatsControlMessage = StreamingUpdateMessage<
+    {
+        Heartbeats: Heartbeats[];
+        ReferenceId: typeof OPENAPI_CONTROL_MESSAGE_HEARTBEAT;
+    }[],
+    typeof OPENAPI_CONTROL_MESSAGE_HEARTBEAT
+>;
+
+type ResetControlMessage = StreamingUpdateMessage<
+    {
+        TargetReferenceIds: string[];
+    }[],
+    typeof OPENAPI_CONTROL_MESSAGE_RESET_SUBSCRIPTIONS
+>;
+
+type ConnectionControlMessage = StreamingUpdateMessage<
+    any,
+    | typeof OPENAPI_CONTROL_MESSAGE_RECONNECT
+    | typeof OPENAPI_CONTROL_MESSAGE_DISCONNECT
+>;
+
+type ControlMessage =
+    | HeartbeatsControlMessage
+    | ResetControlMessage
+    | ConnectionControlMessage;
 
 export interface RetryDelayLevel {
     level: number;
@@ -501,11 +529,10 @@ class Streaming extends MicroEmitter {
         this.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
     }
 
-    // @ts-expect-error FIXME once streaming/connection/transports are migrated to TS
-    private processUpdate(update) {
+    private processUpdate(update: StreamingUpdateMessage) {
         try {
             if (update.ReferenceId[0] === OPENAPI_CONTROL_MESSAGE_PREFIX) {
-                this.handleControlMessage(update);
+                this.handleControlMessage(update as ControlMessage);
             } else {
                 this.sendDataUpdateToSubscribers(update);
             }
@@ -525,8 +552,9 @@ class Streaming extends MicroEmitter {
      * handles the connection received event from SignalR
      * @param updates - updates
      */
-    // @ts-expect-error FIXME once treaming/connection/transports are migrated to TS
-    private onReceived(updates) {
+    private onReceived(
+        updates: StreamingUpdateMessage | Array<StreamingUpdateMessage>,
+    ) {
         if (!updates) {
             log.warn(LOG_AREA, 'onReceived called with no data', updates);
             return;
@@ -561,8 +589,7 @@ class Streaming extends MicroEmitter {
      * Sends an update to a subscription by finding it and calling its callback
      * @param update - update
      */
-    // @ts-expect-error FIXME once treaming/connection/transports are migrated to TS
-    private sendDataUpdateToSubscribers(update) {
+    private sendDataUpdateToSubscribers(update: StreamingUpdateMessage) {
         const subscription = this.findSubscriptionByReferenceId(
             update.ReferenceId,
         );
@@ -576,8 +603,7 @@ class Streaming extends MicroEmitter {
         }
     }
 
-    // @ts-expect-error FIXME once treaming/connection/transports are migrated to TS
-    private getHeartbeats(message) {
+    private getHeartbeats(message: HeartbeatsControlMessage) {
         if (message.Heartbeats) {
             return message.Heartbeats;
         }
@@ -589,8 +615,7 @@ class Streaming extends MicroEmitter {
         return null;
     }
 
-    // @ts-expect-error FIXME once treaming/connection/transports are migrated to TS
-    private getTargetReferenceIds(message) {
+    private getTargetReferenceIds(message: ResetControlMessage) {
         if (message.TargetReferenceIds) {
             return message.TargetReferenceIds;
         }
@@ -606,8 +631,7 @@ class Streaming extends MicroEmitter {
      * Handles a control message on the streaming connection
      * @param message - message from open-api
      */
-    // @ts-expect-error FIXME once streaming/connection/transports are migrated to TS
-    private handleControlMessage(message) {
+    private handleControlMessage(message: ControlMessage) {
         switch (message.ReferenceId) {
             case OPENAPI_CONTROL_MESSAGE_HEARTBEAT:
                 this.handleControlMessageFireHeartbeats(
@@ -643,13 +667,12 @@ class Streaming extends MicroEmitter {
      * @param heartbeatList - heartbeatList
      */
     private handleControlMessageFireHeartbeats(
-        heartbeatList: Array<{
-            OriginatingReferenceId: string;
-            Reason: string;
-        }>,
+        heartbeatList: Heartbeats[] | null,
     ) {
         log.debug(LOG_AREA, 'heartbeats received', heartbeatList);
+        // @ts-expect-error FIXME heartbeatList may be null, decide whether to throw or use an empty array as a default
         for (let i = 0; i < heartbeatList.length; i++) {
+            // @ts-expect-error
             const heartbeat = heartbeatList[i];
             const subscription = this.findSubscriptionByReferenceId(
                 heartbeat.OriginatingReferenceId,
@@ -682,7 +705,9 @@ class Streaming extends MicroEmitter {
      * reset all subscriptions.
      * @param referenceIdList - referenceIdList
      */
-    private handleControlMessageResetSubscriptions(referenceIdList: string[]) {
+    private handleControlMessageResetSubscriptions(
+        referenceIdList: string[] | null,
+    ) {
         if (!referenceIdList || !referenceIdList.length) {
             log.debug(LOG_AREA, 'Resetting all subscriptions');
             this.resetSubscriptions(this.subscriptions.slice(0));

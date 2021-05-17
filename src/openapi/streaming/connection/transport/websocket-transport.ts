@@ -12,7 +12,11 @@ import fetch from '../../../../utils/fetch';
 import type { OAPIRequestResult } from '../../../../types';
 import { getRequestId } from '../../../../utils/request';
 import * as transportTypes from '../transportTypes';
-import type { StreamingTransportInterface } from '../types';
+import type {
+    DataFormat,
+    StreamingTransportInterface,
+    StreamingUpdateMessage,
+} from '../types';
 
 const LOG_AREA = 'PlainWebSocketsTransport';
 
@@ -76,7 +80,7 @@ class WebsocketTransport implements StreamingTransportInterface {
     failCallback: Callback;
     logCallback = NOOP;
     stateChangedCallback: Callback = NOOP;
-    receivedCallback: Callback = NOOP;
+    receivedCallback: (data: StreamingUpdateMessage[]) => void = NOOP;
     connectionSlowCallback = NOOP;
     startedCallback = NOOP;
     closeCallback = NOOP;
@@ -124,7 +128,7 @@ class WebsocketTransport implements StreamingTransportInterface {
 
     private parseMessage(rawData: ArrayBuffer) {
         let index = 0;
-        const messages = [];
+        const messages: StreamingUpdateMessage[] = [];
 
         while (index < rawData.byteLength) {
             const message = new DataView(rawData);
@@ -179,7 +183,7 @@ class WebsocketTransport implements StreamingTransportInterface {
             messages.push({
                 ReservedField: reservedField,
                 ReferenceId: referenceId,
-                DataFormat: dataFormat,
+                DataFormat: dataFormat as DataFormat,
                 Data: data,
             });
         }
@@ -187,7 +191,7 @@ class WebsocketTransport implements StreamingTransportInterface {
         return messages;
     }
 
-    private handleSocketMessage = (messageEvent: { data: ArrayBuffer }) => {
+    private handleSocketMessage = (messageEvent: MessageEvent<ArrayBuffer>) => {
         this.lastMessageTime = Date.now();
 
         if (messageEvent.data instanceof ArrayBuffer) {

@@ -1,7 +1,10 @@
 import log from '../../../../log';
 import * as transportTypes from '../transportTypes';
 import * as constants from '../constants';
-import type { StreamingTransportInterface } from '../types';
+import type {
+    StreamingUpdateMessage,
+    StreamingTransportInterface,
+} from '../types';
 
 const LOG_AREA = 'SignalRTransport';
 const NOOP = () => {};
@@ -101,7 +104,7 @@ class SignalrTransport implements StreamingTransportInterface {
         this.stateChangedCallback = callback;
     }
 
-    setReceivedCallback(callback: Callback) {
+    setReceivedCallback(callback: (data: StreamingUpdateMessage) => any) {
         this.connection.received(callback);
     }
 

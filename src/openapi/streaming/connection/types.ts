@@ -1,6 +1,10 @@
 import type { TRANSPORT_NAME_MAP } from './connection';
 import type { IHubProtocol } from '@microsoft/signalr';
-import type { READABLE_CONNECTION_STATE_MAP } from './constants';
+import type {
+    READABLE_CONNECTION_STATE_MAP,
+    DATA_FORMAT_JSON,
+    DATA_FORMAT_PROTOBUF,
+} from './constants';
 
 export type TransportTypes = keyof typeof TRANSPORT_NAME_MAP;
 
@@ -14,6 +18,14 @@ export type ConnectionState = keyof typeof READABLE_CONNECTION_STATE_MAP;
 
 interface Callback {
     (): unknown;
+}
+
+export interface ReceiveCallback {
+    (data: StreamingUpdateMessage): void;
+}
+
+export interface StateChangeCallback {
+    (nextState: ConnectionState): void;
 }
 
 export interface StreamingTransportOptions extends ConnectionOptions {
@@ -42,8 +54,31 @@ export interface StreamingTransportInterface {
     onOrphanFound?(): unknown;
     getTransport?(): StreamingTransportInterface;
     onSubscribeNetworkError?: () => void;
-    setReceivedCallback(callback: Callback): void;
-    setStateChangedCallback(callback: (state: ConnectionState) => void): void;
+    setReceivedCallback(callback: ReceiveCallback): void;
+    setStateChangedCallback(callback: StateChangeCallback): void;
     setUnauthorizedCallback(callback: Callback): void;
     setConnectionSlowCallback(callback: Callback): void;
+}
+
+export type StreamingData =
+    | Array<unknown>
+    | Record<string, unknown>
+    | BufferSource
+    | string;
+
+export type DataFormat = typeof DATA_FORMAT_JSON | typeof DATA_FORMAT_PROTOBUF;
+
+export interface Heartbeats {
+    OriginatingReferenceId: string;
+    Reason: string;
+}
+
+export interface StreamingUpdateMessage<T = StreamingData, R = string> {
+    ReferenceId: R;
+    MessageId?: string | null;
+    ReservedField?: number;
+    Heartbeats?: Heartbeats[];
+    TargetReferenceIds?: string[];
+    DataFormat?: DataFormat;
+    Data: T;
 }

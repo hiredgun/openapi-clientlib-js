@@ -76,7 +76,7 @@ describe('openapi Streaming', () => {
         );
 
         Connection.prototype.setReceivedCallback.mockImplementation(
-            (callback: () => void) => {
+            (callback: (args: any) => void) => {
                 receivedCallback = callback;
             },
         );
