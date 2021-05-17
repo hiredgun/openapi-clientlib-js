@@ -56,7 +56,7 @@
         "eslint": "7.22.0",
         "eslint-import-resolver-node": "0.3.4",
         "eslint-plugin-destructuring": "2.2.1",
-        "eslint-plugin-import": "2.22.1",
+        "eslint-plugin-import": "2.23.2",
         "eslint-plugin-jest": "23.8.2",
         "eslint-plugin-promise": "4.3.1",
         "eslint-plugin-switch-case": "1.1.2",
