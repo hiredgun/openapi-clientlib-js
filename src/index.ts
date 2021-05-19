@@ -29,6 +29,7 @@ export type {
     HTTPMethod,
     RequestOptions,
 } from './types';
+export type { StreamingMessage } from './openapi/streaming/connection/types';
 export type { default as TransportCore } from './openapi/transport/core';
 export type { default as TransportAuth } from './openapi/transport/auth';
 export type { default as TransportBatch } from './openapi/transport/batch';

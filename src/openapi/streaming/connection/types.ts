@@ -73,12 +73,17 @@ export interface Heartbeats {
     Reason: string;
 }
 
-export interface StreamingMessage<T = StreamingData, R = string> {
+export interface StreamingMessage<T = unknown, R = string> {
     ReferenceId: R;
+    Timestamp?: string;
     MessageId?: string | null;
     ReservedField?: number;
-    Heartbeats?: Heartbeats[];
-    TargetReferenceIds?: string[];
     DataFormat?: DataFormat;
     Data: T;
+}
+
+export interface StreamingControlMessage<T = StreamingData, R = string>
+    extends StreamingMessage<T, R> {
+    Heartbeats?: Heartbeats[];
+    TargetReferenceIds?: string[];
 }

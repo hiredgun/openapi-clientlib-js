@@ -13,6 +13,7 @@ import type {
     ConnectionOptions,
     ConnectionState,
     StreamingMessage,
+    StreamingControlMessage,
     Heartbeats,
 } from './connection/types';
 import type AuthProvider from '../authProvider';
@@ -20,7 +21,7 @@ import type ParserBase from './parser/parser-base';
 import type { IHubProtocol } from '@microsoft/signalr';
 import type { ITransport } from '../transport/transport-base';
 
-type HeartbeatsControlMessage = StreamingMessage<
+type HeartbeatsControlMessage = StreamingControlMessage<
     {
         Heartbeats: Heartbeats[];
         ReferenceId: typeof OPENAPI_CONTROL_MESSAGE_HEARTBEAT;
@@ -28,14 +29,14 @@ type HeartbeatsControlMessage = StreamingMessage<
     typeof OPENAPI_CONTROL_MESSAGE_HEARTBEAT
 >;
 
-type ResetControlMessage = StreamingMessage<
+type ResetControlMessage = StreamingControlMessage<
     {
         TargetReferenceIds: string[];
     }[],
     typeof OPENAPI_CONTROL_MESSAGE_RESET_SUBSCRIPTIONS
 >;
 
-type ConnectionControlMessage = StreamingMessage<
+type ConnectionControlMessage = StreamingControlMessage<
     any,
     | typeof OPENAPI_CONTROL_MESSAGE_RECONNECT
     | typeof OPENAPI_CONTROL_MESSAGE_DISCONNECT
