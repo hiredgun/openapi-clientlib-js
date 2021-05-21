@@ -7,6 +7,21 @@ export interface ILogger {
     debug(...args: unknown[]): void;
 }
 
+const ERROR = 'error';
+const WARN = 'warn';
+const INFO = 'info';
+const DEBUG = 'debug';
+
+type EventNames = typeof ERROR | typeof WARN | typeof INFO | typeof DEBUG;
+type EmittedEvents = {
+    [name in EventNames]: (
+        logArea: string,
+        message: string,
+        context?: any,
+        options?: Record<string, any>,
+    ) => void;
+};
+
 /**
  * The shared js log, which allows posting messages and listening to them.
  * @example
@@ -23,28 +38,32 @@ export interface ILogger {
  * log.on(log.ERROR, console.error.bind(console));
  * ```
  */
-export class Log extends MicroEmitter implements ILogger {
+export class Log extends MicroEmitter<EmittedEvents> implements ILogger {
     /**
      * The Debug event constant.
      */
-    readonly DEBUG = 'debug';
+    readonly DEBUG = DEBUG;
     /**
      * The info event constant.
      */
-    readonly INFO = 'info';
+    readonly INFO = INFO;
     /**
      * The warn event constant.
      */
-    readonly WARN = 'warn';
+    readonly WARN = WARN;
     /**
      * the error event constant.
      */
-    readonly ERROR = 'error';
+    readonly ERROR = ERROR;
 
-    error = (...args: unknown[]) => this.trigger(this.ERROR, ...args);
-    warn = (...args: unknown[]) => this.trigger(this.WARN, ...args);
-    info = (...args: unknown[]) => this.trigger(this.INFO, ...args);
-    debug = (...args: unknown[]) => this.trigger(this.DEBUG, ...args);
+    error = (...args: Parameters<EmittedEvents[typeof ERROR]>) =>
+        this.trigger(this.ERROR, ...args);
+    warn = (...args: Parameters<EmittedEvents[typeof WARN]>) =>
+        this.trigger(this.WARN, ...args);
+    info = (...args: Parameters<EmittedEvents[typeof INFO]>) =>
+        this.trigger(this.INFO, ...args);
+    debug = (...args: Parameters<EmittedEvents[typeof DEBUG]>) =>
+        this.trigger(this.DEBUG, ...args);
 }
 
 export default new Log();

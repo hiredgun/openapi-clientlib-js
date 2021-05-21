@@ -38,11 +38,20 @@ export function findRetryDelay(
     return lastFoundDelay;
 }
 
+type EmittedEvents = {
+    [connectionConstants.EVENT_CONNECTION_STATE_CHANGED]: (
+        connectionState: types.ConnectionState,
+    ) => void;
+    [connectionConstants.EVENT_STREAMING_FAILED]: () => void;
+    [connectionConstants.EVENT_CONNECTION_SLOW]: () => void;
+    [connectionConstants.EVENT_DISCONNECT_REQUESTED]: () => void;
+};
+
 /**
  * Manages subscriptions to the Open API streaming service.
  * Once created this will immediately attempt to start the streaming service
  */
-class Streaming extends MicroEmitter {
+class Streaming extends MicroEmitter<EmittedEvents> {
     /**
      * Event that occurs when the connection state changes.
      */
