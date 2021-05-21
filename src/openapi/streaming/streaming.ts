@@ -8,100 +8,10 @@ import StreamingOrphanFinder from './orphan-finder';
 import Connection from './connection/connection';
 import * as connectionConstants from './connection/constants';
 import * as streamingTransports from './connection/transportTypes';
-import type {
-    TransportTypes,
-    ConnectionOptions,
-    ConnectionState,
-    StreamingMessage,
-    StreamingControlMessage,
-    Heartbeats,
-} from './connection/types';
+import type * as types from './types';
 import type AuthProvider from '../authProvider';
-import type ParserBase from './parser/parser-base';
-import type { IHubProtocol } from '@microsoft/signalr';
 import type { ITransport } from '../transport/transport-base';
-
-type HeartbeatsControlMessage = StreamingControlMessage<
-    {
-        Heartbeats: Heartbeats[];
-        ReferenceId: typeof OPENAPI_CONTROL_MESSAGE_HEARTBEAT;
-    }[],
-    typeof OPENAPI_CONTROL_MESSAGE_HEARTBEAT
->;
-
-type ResetControlMessage = StreamingControlMessage<
-    {
-        TargetReferenceIds: string[];
-    }[],
-    typeof OPENAPI_CONTROL_MESSAGE_RESET_SUBSCRIPTIONS
->;
-
-type ConnectionControlMessage = StreamingControlMessage<
-    any,
-    | typeof OPENAPI_CONTROL_MESSAGE_RECONNECT
-    | typeof OPENAPI_CONTROL_MESSAGE_DISCONNECT
->;
-
-type ControlMessage =
-    | HeartbeatsControlMessage
-    | ResetControlMessage
-    | ConnectionControlMessage;
-
-export interface RetryDelayLevel {
-    level: number;
-    delay: number;
-}
-
-export interface StreamingConfigurableOptions {
-    /**
-     * Whether the signal-r streaming connection waits for page load before starting
-     */
-    waitForPageLoad?: boolean;
-    /**
-     * The transports to be used in order by signal-r.
-     */
-    transportTypes?: Array<TransportTypes>;
-    /**
-     * The delay in milliseconds to wait before attempting a new connect after signal-r has disconnected
-     */
-    connectRetryDelay?: number;
-    /**
-     * The levels of delays in milliseconds for specific retry counts. Structure: `[{ level:Number, delay:Number }].`
-     */
-    connectRetryDelayLevels?: RetryDelayLevel[];
-    /**
-     * The map of subscription parsers where key is format name and value is parser constructor.
-     */
-    parsers?: Record<string, new (...args: any) => ParserBase>;
-    /**
-     * The map of subscription parser engines where key is format name and value is an engine implementation.
-     */
-    parserEngines?: Record<string, unknown>;
-    transport?: Array<TransportTypes>;
-    /**
-     *  Message serialization protocol used by signalr core
-     */
-    messageProtocol?: Record<string, any>;
-    messageSerializationProtocol?: IHubProtocol;
-}
-
-const OPENAPI_CONTROL_MESSAGE_PREFIX = '_';
-const OPENAPI_CONTROL_MESSAGE_HEARTBEAT = '_heartbeat';
-const OPENAPI_CONTROL_MESSAGE_RESET_SUBSCRIPTIONS = '_resetsubscriptions';
-const OPENAPI_CONTROL_MESSAGE_RECONNECT = '_reconnect';
-const OPENAPI_CONTROL_MESSAGE_DISCONNECT = '_disconnect';
-
-const DEFAULT_CONNECT_RETRY_DELAY = 1000;
-
-const LOG_AREA = 'Streaming';
-
-const DEFAULT_STREAMING_OPTIONS = {
-    waitForPageLoad: false,
-    transportTypes: [
-        streamingTransports.LEGACY_SIGNALR_WEBSOCKETS,
-        streamingTransports.LEGACY_SIGNALR_LONG_POLLING,
-    ],
-};
+import * as constants from './constants';
 
 /**
  * Find matching delay based on current retry count/index.
@@ -112,7 +22,7 @@ const DEFAULT_STREAMING_OPTIONS = {
  * @returns  Matching delay to retry index/try/count.
  */
 export function findRetryDelay(
-    retryLevels: RetryDelayLevel[],
+    retryLevels: types.RetryDelayLevel[],
     retryIndex: number,
     defaultDelay: number,
 ) {
@@ -187,7 +97,7 @@ class Streaming extends MicroEmitter {
         connectionConstants.READABLE_CONNECTION_STATE_MAP;
 
     retryCount = 0;
-    connectionState: ConnectionState = this.CONNECTION_STATE_INITIALIZING;
+    connectionState: types.ConnectionState = this.CONNECTION_STATE_INITIALIZING;
     baseUrl: string;
     authProvider: AuthProvider;
     transport: ITransport;
@@ -196,7 +106,7 @@ class Streaming extends MicroEmitter {
     paused = false;
     orphanFinder: StreamingOrphanFinder;
     connection!: Connection;
-    connectionOptions: ConnectionOptions = {
+    connectionOptions: types.ConnectionOptions = {
         waitForPageLoad: false,
         transport: [
             streamingTransports.LEGACY_SIGNALR_WEBSOCKETS,
@@ -205,8 +115,8 @@ class Streaming extends MicroEmitter {
     };
     reconnecting = false;
     contextId!: string;
-    retryDelay = DEFAULT_CONNECT_RETRY_DELAY;
-    retryDelayLevels?: RetryDelayLevel[];
+    retryDelay = constants.DEFAULT_CONNECT_RETRY_DELAY;
+    retryDelayLevels?: types.RetryDelayLevel[];
     reconnectTimer?: number;
     disposed = false;
 
@@ -220,14 +130,14 @@ class Streaming extends MicroEmitter {
         transport: ITransport,
         baseUrl: string,
         authProvider: AuthProvider,
-        options?: Partial<StreamingConfigurableOptions>,
+        options?: Partial<types.StreamingConfigurableOptions>,
     ) {
         super();
         this.baseUrl = baseUrl;
         this.authProvider = authProvider;
         this.transport = transport;
 
-        this.setOptions({ ...DEFAULT_STREAMING_OPTIONS, ...options });
+        this.setOptions({ ...constants.DEFAULT_STREAMING_OPTIONS, ...options });
 
         this.authProvider.on(this.authProvider.EVENT_TOKEN_RECEIVED, () => {
             // Forcing authorization request upon new token arrival.
@@ -243,7 +153,7 @@ class Streaming extends MicroEmitter {
         this.init();
     }
 
-    setOptions(options: StreamingConfigurableOptions) {
+    setOptions(options: types.StreamingConfigurableOptions) {
         options = options || {};
 
         const {
@@ -342,7 +252,7 @@ class Streaming extends MicroEmitter {
             this.connectionState !== this.CONNECTION_STATE_INITIALIZING
         ) {
             log.warn(
-                LOG_AREA,
+                constants.LOG_AREA,
                 'Only call connect on a disconnected streaming connection',
                 new Error(),
             );
@@ -369,7 +279,7 @@ class Streaming extends MicroEmitter {
                     // isReconnection arg is never provided
                     if (isReconnection && !this.reconnecting) {
                         log.debug(
-                            LOG_AREA,
+                            constants.LOG_AREA,
                             'ResetStreaming called while waiting for token during reconnection',
                             {
                                 transport,
@@ -430,24 +340,28 @@ class Streaming extends MicroEmitter {
     /**
      * Handles connection state change
      */
-    private onConnectionStateChanged(nextState: ConnectionState) {
+    private onConnectionStateChanged(nextState: types.ConnectionState) {
         const connectionTransport = this.getActiveTransportName();
 
         if (nextState === this.connectionState) {
-            log.warn(LOG_AREA, 'Tring to set same state as current one', {
-                connectionState: this.READABLE_CONNECTION_STATE_MAP[
-                    this.connectionState
-                ],
-                mechanism: connectionTransport,
-                reconnecting: this.reconnecting,
-            });
+            log.warn(
+                constants.LOG_AREA,
+                'Tring to set same state as current one',
+                {
+                    connectionState: this.READABLE_CONNECTION_STATE_MAP[
+                        this.connectionState
+                    ],
+                    mechanism: connectionTransport,
+                    reconnecting: this.reconnecting,
+                },
+            );
             return;
         }
 
         this.connectionState = nextState;
 
         log.info(
-            LOG_AREA,
+            constants.LOG_AREA,
             'Connection state changed',
             {
                 changedTo: this.READABLE_CONNECTION_STATE_MAP[
@@ -525,21 +439,24 @@ class Streaming extends MicroEmitter {
             this.connectionState = this.CONNECTION_STATE_STARTED;
         }
 
-        log.info(LOG_AREA, 'Connection started');
+        log.info(constants.LOG_AREA, 'Connection started');
 
         this.trigger(this.EVENT_CONNECTION_STATE_CHANGED, this.connectionState);
     }
 
-    private processUpdate(update: StreamingMessage) {
+    private processUpdate(update: types.StreamingMessage) {
         try {
-            if (update.ReferenceId[0] === OPENAPI_CONTROL_MESSAGE_PREFIX) {
-                this.handleControlMessage(update as ControlMessage);
+            if (
+                update.ReferenceId[0] ===
+                constants.OPENAPI_CONTROL_MESSAGE_PREFIX
+            ) {
+                this.handleControlMessage(update as types.ControlMessage);
             } else {
                 this.sendDataUpdateToSubscribers(update);
             }
         } catch (error) {
             log.error(
-                LOG_AREA,
+                constants.LOG_AREA,
                 'Error occurred in onReceived processing update',
                 {
                     error,
@@ -553,9 +470,15 @@ class Streaming extends MicroEmitter {
      * handles the connection received event from SignalR
      * @param updates - updates
      */
-    private onReceived(updates: StreamingMessage | Array<StreamingMessage>) {
+    private onReceived(
+        updates: types.StreamingMessage | Array<types.StreamingMessage>,
+    ) {
         if (!updates) {
-            log.warn(LOG_AREA, 'onReceived called with no data', updates);
+            log.warn(
+                constants.LOG_AREA,
+                'onReceived called with no data',
+                updates,
+            );
             return;
         }
 
@@ -588,21 +511,21 @@ class Streaming extends MicroEmitter {
      * Sends an update to a subscription by finding it and calling its callback
      * @param update - update
      */
-    private sendDataUpdateToSubscribers(update: StreamingMessage) {
+    private sendDataUpdateToSubscribers(update: types.StreamingMessage) {
         const subscription = this.findSubscriptionByReferenceId(
             update.ReferenceId,
         );
         if (!subscription || subscription.onStreamingData(update) === false) {
             // happens if we've been sent to another server and cannot kill the old subscription
             log.debug(
-                LOG_AREA,
+                constants.LOG_AREA,
                 'Data update does not match a subscription',
                 update,
             );
         }
     }
 
-    private getHeartbeats(message: HeartbeatsControlMessage) {
+    private getHeartbeats(message: types.HeartbeatsControlMessage) {
         if (message.Heartbeats) {
             return message.Heartbeats;
         }
@@ -614,7 +537,7 @@ class Streaming extends MicroEmitter {
         return null;
     }
 
-    private getTargetReferenceIds(message: ResetControlMessage) {
+    private getTargetReferenceIds(message: types.ResetControlMessage) {
         if (message.TargetReferenceIds) {
             return message.TargetReferenceIds;
         }
@@ -630,30 +553,30 @@ class Streaming extends MicroEmitter {
      * Handles a control message on the streaming connection
      * @param message - message from open-api
      */
-    private handleControlMessage(message: ControlMessage) {
+    private handleControlMessage(message: types.ControlMessage) {
         switch (message.ReferenceId) {
-            case OPENAPI_CONTROL_MESSAGE_HEARTBEAT:
+            case constants.OPENAPI_CONTROL_MESSAGE_HEARTBEAT:
                 this.handleControlMessageFireHeartbeats(
                     this.getHeartbeats(message),
                 );
                 break;
 
-            case OPENAPI_CONTROL_MESSAGE_RESET_SUBSCRIPTIONS:
+            case constants.OPENAPI_CONTROL_MESSAGE_RESET_SUBSCRIPTIONS:
                 this.handleControlMessageResetSubscriptions(
                     this.getTargetReferenceIds(message),
                 );
                 break;
 
-            case OPENAPI_CONTROL_MESSAGE_RECONNECT:
+            case constants.OPENAPI_CONTROL_MESSAGE_RECONNECT:
                 this.handleControlMessageReconnect();
                 break;
 
-            case OPENAPI_CONTROL_MESSAGE_DISCONNECT:
+            case constants.OPENAPI_CONTROL_MESSAGE_DISCONNECT:
                 this.handleControlMessageDisconnect();
                 break;
 
             default:
-                log.warn(LOG_AREA, 'Unrecognised control message', {
+                log.warn(constants.LOG_AREA, 'Unrecognised control message', {
                     message,
                     transport: this.getActiveTransportName(),
                 });
@@ -666,9 +589,9 @@ class Streaming extends MicroEmitter {
      * @param heartbeatList - heartbeatList
      */
     private handleControlMessageFireHeartbeats(
-        heartbeatList: Heartbeats[] | null,
+        heartbeatList: types.Heartbeats[] | null,
     ) {
-        log.debug(LOG_AREA, 'heartbeats received', heartbeatList);
+        log.debug(constants.LOG_AREA, 'heartbeats received', heartbeatList);
         // @ts-expect-error FIXME heartbeatList may be null, decide whether to throw or use an empty array as a default
         for (let i = 0; i < heartbeatList.length; i++) {
             // @ts-expect-error
@@ -681,7 +604,7 @@ class Streaming extends MicroEmitter {
             } else {
                 // happens if we've been sent to another server and cannot kill the old subscription
                 log.debug(
-                    LOG_AREA,
+                    constants.LOG_AREA,
                     'Heartbeat received for non-found subscription',
                     heartbeat,
                 );
@@ -708,12 +631,16 @@ class Streaming extends MicroEmitter {
         referenceIdList: string[] | null,
     ) {
         if (!referenceIdList || !referenceIdList.length) {
-            log.debug(LOG_AREA, 'Resetting all subscriptions');
+            log.debug(constants.LOG_AREA, 'Resetting all subscriptions');
             this.resetSubscriptions(this.subscriptions.slice(0));
             return;
         }
 
-        log.debug(LOG_AREA, 'Resetting subscriptions', referenceIdList);
+        log.debug(
+            constants.LOG_AREA,
+            'Resetting subscriptions',
+            referenceIdList,
+        );
 
         const subscriptionsToReset = [];
         for (let i = 0; i < referenceIdList.length; i++) {
@@ -725,7 +652,7 @@ class Streaming extends MicroEmitter {
                 subscriptionsToReset.push(subscription);
             } else {
                 log.debug(
-                    LOG_AREA,
+                    constants.LOG_AREA,
                     "Couldn't find subscription to reset",
                     referenceId,
                 );
@@ -743,7 +670,7 @@ class Streaming extends MicroEmitter {
      */
     private handleControlMessageDisconnect() {
         log.info(
-            LOG_AREA,
+            constants.LOG_AREA,
             'disconnect control message received',
             {
                 transport: this.getActiveTransportName(),
@@ -763,7 +690,7 @@ class Streaming extends MicroEmitter {
 
     private handleControlMessageReconnect() {
         log.info(
-            LOG_AREA,
+            constants.LOG_AREA,
             'reconnect control message received',
             {
                 transport: this.getActiveTransportName(),
@@ -787,7 +714,7 @@ class Streaming extends MicroEmitter {
      * handles the connection slow event from SignalR. Happens when a keep-alive is missed.
      */
     private onConnectionSlow() {
-        log.info(LOG_AREA, 'Connection is slow');
+        log.info(constants.LOG_AREA, 'Connection is slow');
         this.trigger(this.EVENT_CONNECTION_SLOW);
     }
 
@@ -817,7 +744,7 @@ class Streaming extends MicroEmitter {
      */
     private onOrphanFound(subscription: Subscription) {
         log.info(
-            LOG_AREA,
+            constants.LOG_AREA,
             'Subscription has become orphaned - resetting',
             subscription,
         );
@@ -924,7 +851,7 @@ class Streaming extends MicroEmitter {
                 })
                 .catch((response: unknown) =>
                     log.error(
-                        LOG_AREA,
+                        constants.LOG_AREA,
                         'An error occurred unsubscribing by tag',
                         {
                             response,

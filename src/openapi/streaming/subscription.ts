@@ -12,7 +12,7 @@ import type { QueuedItem } from './subscription-queue';
 import ParserFacade from './parser/parser-facade';
 import type { ITransport } from '../transport/transport-base';
 import type { RequestOptions } from '../../types';
-import type { StreamingMessage } from './connection/types';
+import type { StreamingMessage } from './types';
 
 const updateTypes = {
     UPDATE_TYPE_SNAPSHOT: 1,

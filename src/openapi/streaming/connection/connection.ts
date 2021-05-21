@@ -3,9 +3,8 @@ import * as transportTypes from './transportTypes';
 import WebsocketTransport from './transport/websocket-transport';
 import SignalrTransport from './transport/signalr-transport';
 import SignalrCoreTransport from './transport/signalr-core-transport';
+import type { TransportTypes, ConnectionOptions } from '../types';
 import type {
-    TransportTypes,
-    ConnectionOptions,
     StreamingTransportInterface,
     ReceiveCallback,
     StateChangeCallback,

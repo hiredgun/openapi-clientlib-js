@@ -4,9 +4,11 @@ import * as constants from '../constants';
 import type {
     ConnectionState,
     TransportTypes,
+    StreamingMessage,
+} from '../../types';
+import type {
     StreamingTransportOptions,
     StreamingTransportInterface,
-    StreamingMessage,
     StreamingData,
 } from '../types';
 import type SignalR from '@microsoft/signalr';

@@ -1,7 +1,8 @@
 import log from '../../../../log';
 import * as transportTypes from '../transportTypes';
 import * as constants from '../constants';
-import type { StreamingMessage, StreamingTransportInterface } from '../types';
+import type { StreamingMessage } from '../../types';
+import type { StreamingTransportInterface } from '../types';
 
 const LOG_AREA = 'SignalRTransport';
 const NOOP = () => {};

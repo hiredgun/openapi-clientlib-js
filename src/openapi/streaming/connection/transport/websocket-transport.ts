@@ -12,11 +12,8 @@ import fetch from '../../../../utils/fetch';
 import type { OAPIRequestResult } from '../../../../types';
 import { getRequestId } from '../../../../utils/request';
 import * as transportTypes from '../transportTypes';
-import type {
-    DataFormat,
-    StreamingTransportInterface,
-    StreamingMessage,
-} from '../types';
+import type { DataFormat, StreamingMessage } from '../../types';
+import type { StreamingTransportInterface } from '../types';
 
 const LOG_AREA = 'PlainWebSocketsTransport';
 
