@@ -75,7 +75,7 @@ class SignalrTransport implements StreamingTransportInterface {
                 return constants.CONNECTION_STATE_RECONNECTING;
 
             default:
-                log.warn(LOG_AREA, 'Unrecognised state', state);
+                log.warn(LOG_AREA, 'Unrecognised state', { state });
                 break;
         }
 

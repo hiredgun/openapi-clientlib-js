@@ -580,7 +580,7 @@ class Subscription {
                 log.debug(
                     LOG_AREA,
                     'Failed to remove duplicate request subscription',
-                    error,
+                    { error },
                 );
             });
     }

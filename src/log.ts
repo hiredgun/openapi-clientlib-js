@@ -11,7 +11,7 @@ type EmittedEvents = {
     [name in EventNames]: (
         logArea: string,
         message: string,
-        context?: any,
+        context?: Record<string, any>,
         options?: Record<string, any>,
     ) => void;
 };

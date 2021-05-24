@@ -600,7 +600,7 @@ class Streaming extends MicroEmitter<EmittedEvents> {
     private handleControlMessageFireHeartbeats(
         heartbeatList: types.Heartbeats[] | null,
     ) {
-        log.debug(constants.LOG_AREA, 'heartbeats received', heartbeatList);
+        log.debug(constants.LOG_AREA, 'heartbeats received', { heartbeatList });
         // @ts-expect-error FIXME heartbeatList may be null, decide whether to throw or use an empty array as a default
         for (let i = 0; i < heartbeatList.length; i++) {
             // @ts-expect-error
@@ -663,7 +663,7 @@ class Streaming extends MicroEmitter<EmittedEvents> {
                 log.debug(
                     constants.LOG_AREA,
                     "Couldn't find subscription to reset",
-                    referenceId,
+                    { referenceId },
                 );
             }
         }
