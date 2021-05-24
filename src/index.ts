@@ -42,7 +42,7 @@ export type { default as Subscription } from './openapi/streaming/subscription';
 export type { default as PriceFormatting } from './price-formatting';
 export type { default as priceFormatOptions } from './price-formatting/format-options';
 export type { default as NumberFormatting } from './number-formatting';
-export type { default as MicroEmitter } from './micro-emitter';
+export type { default as MicroEmitter, IEventEmitter } from './micro-emitter';
 
 export default {
     log,

@@ -9,7 +9,7 @@ export interface IEventEmitter<Events extends Record<string, Callback>> {
         eventType: Event,
         onFunction: Events[Event],
         that?: any,
-    ): this;
+    ): any;
 
     /**
      * Register an event handler (subscribe)
@@ -22,7 +22,7 @@ export interface IEventEmitter<Events extends Record<string, Callback>> {
         eventType: Event,
         onFunction: Events[Event],
         that?: any,
-    ): this;
+    ): any;
 
     /**
      * Stop listening to events (unsubscribe)
@@ -34,7 +34,7 @@ export interface IEventEmitter<Events extends Record<string, Callback>> {
         eventType?: Event | null,
         onFunction?: Events[Event] | null,
         that?: any,
-    ): this;
+    ): any;
 
     /**
      * Triggers an event
@@ -44,7 +44,7 @@ export interface IEventEmitter<Events extends Record<string, Callback>> {
     trigger<Event extends keyof Events>(
         eventType: Event,
         ...args: Parameters<Events[Event]>
-    ): this;
+    ): any;
 }
 
 export interface Callback {
@@ -57,7 +57,7 @@ interface Subscriber<C = Callback> {
     isOne: boolean;
 }
 
-type EventTypes = Record<string, Callback>;
+export type EventTypes = Record<string, Callback>;
 
 class MicroEmitter<Events extends EventTypes> implements IEventEmitter<Events> {
     private subscribers: Partial<Record<keyof Events, Subscriber[]>> = {};
