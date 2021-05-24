@@ -576,11 +576,11 @@ class Subscription {
                 contextId: this.currentStreamingContextId as string,
                 referenceId,
             })
-            .catch((error: unknown) => {
+            .catch((error: any) => {
                 log.debug(
                     LOG_AREA,
                     'Failed to remove duplicate request subscription',
-                    { error },
+                    error,
                 );
             });
     }
