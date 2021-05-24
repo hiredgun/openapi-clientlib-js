@@ -96,7 +96,7 @@ const EVENT_TOKEN_REFRESH = 'tokenRefresh' as const;
 const EVENT_TOKEN_RECEIVED = 'tokenReceived' as const;
 const EVENT_TOKEN_REFRESH_FAILED = 'tokenRefreshFailed' as const;
 
-type AllowedEvents = {
+type EmittedEvents = {
     [EVENT_TOKEN_REFRESH]: () => void;
     [EVENT_TOKEN_RECEIVED]: (token?: string, refresh?: number) => void;
     [EVENT_TOKEN_REFRESH_FAILED]: () => void;
@@ -109,7 +109,7 @@ type AllowedEvents = {
  * For authentication management, this class will wait until just before the authentication expires (see tokenRefreshMarginMs)
  * and will refresh the token generating an event which is picked up by some of the other Transports.
  */
-class AuthProvider extends MicroEmitter<AllowedEvents> {
+class AuthProvider extends MicroEmitter<EmittedEvents> {
     private expiry = 0;
     private token: string | null = null;
     tokenRefreshUrl?: string;
