@@ -117,7 +117,9 @@ class TransportBatch extends TransportQueue {
     ) => {
         // Previously occurred due to a bug in the auth transport
         if (!(batchResult && batchResult.response)) {
-            log.error(LOG_AREA, 'Received success call without response');
+            log.error(LOG_AREA, 'Received success call without response', {
+                batchResult,
+            });
             this.batchCallFailure(callList, batchResult);
             return;
         }
