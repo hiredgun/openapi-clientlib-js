@@ -1,6 +1,6 @@
 export type EventTypes = Record<string, Callback>;
 
-interface IEventEmitter<Events extends EventTypes> {
+export interface IEventEmitter<Events extends EventTypes> {
     /**
      * Register an event handler for single invocation (subscribe)
      * @param eventType - The event type to listen to
