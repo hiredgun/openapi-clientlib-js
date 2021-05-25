@@ -1,4 +1,6 @@
-export interface IEventEmitter<Events extends Record<string, Callback>> {
+export type EventTypes = Record<string, Callback>;
+
+interface IEventEmitter<Events extends EventTypes> {
     /**
      * Register an event handler for single invocation (subscribe)
      * @param eventType - The event type to listen to
@@ -56,8 +58,6 @@ interface Subscriber<C = Callback> {
     that: any;
     isOne: boolean;
 }
-
-export type EventTypes = Record<string, Callback>;
 
 class MicroEmitter<Events extends EventTypes> implements IEventEmitter<Events> {
     private subscribers: Partial<Record<keyof Events, Subscriber[]>> = {};
