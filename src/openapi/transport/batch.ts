@@ -36,7 +36,7 @@ class TransportBatch extends TransportQueue {
     timeoutMs = 0;
     services: Services = {};
     isQueueing = true;
-    nextTickTimer: ReturnType<typeof setTimeout> | boolean = false;
+    nextTickTimer: number | boolean = false;
 
     /**
      * @param transport - Instance of the transport class to wrap.
@@ -261,7 +261,7 @@ class TransportBatch extends TransportQueue {
                 if (this.nextTickTimer) {
                     return;
                 }
-                this.nextTickTimer = setTimeout(
+                this.nextTickTimer = window.setTimeout(
                     this.runBatches,
                     this.timeoutMs,
                 );

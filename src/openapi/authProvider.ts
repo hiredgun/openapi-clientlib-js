@@ -124,7 +124,7 @@ class AuthProvider extends MicroEmitter<EmittedEvents> {
     state = 1;
     retries = 0;
     tokenRefreshTimerFireTime = 0;
-    tokenRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+    tokenRefreshTimer: number | null = null;
     lastTokenFetchTime = 0;
     // Type of event that occurs when the token is refreshing.
     EVENT_TOKEN_REFRESH = EVENT_TOKEN_REFRESH;
@@ -281,7 +281,7 @@ class AuthProvider extends MicroEmitter<EmittedEvents> {
             this.state = STATE_WAITING;
             this.retries++;
             this.tokenRefreshTimerFireTime = Date.now() + this.retryDelayMs;
-            this.tokenRefreshTimer = setTimeout(
+            this.tokenRefreshTimer = window.setTimeout(
                 this.refreshToken,
                 this.retryDelayMs,
             );
@@ -316,7 +316,7 @@ class AuthProvider extends MicroEmitter<EmittedEvents> {
                 elapse = 0;
             }
             this.tokenRefreshTimerFireTime = Date.now() + elapse;
-            this.tokenRefreshTimer = setTimeout(
+            this.tokenRefreshTimer = window.setTimeout(
                 this.refreshOpenApiToken,
                 elapse,
             );

@@ -22,7 +22,6 @@ export interface IEventEmitter<
      * @param onFunction - The function to call
      * @param that - (optional) The context with which to call onFunction (useful also for unsubscribing only a instance)
      */
-
     on<Event extends keyof Events>(
         eventType: Event,
         onFunction: Events[Event],

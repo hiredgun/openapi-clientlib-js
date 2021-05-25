@@ -64,7 +64,7 @@ class WebsocketTransport implements StreamingTransportInterface {
     isReconnectPending = false;
 
     lastMessageId: null | Uint8Array = null;
-    reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+    reconnectTimeout: number | null = null;
     reconnectCount = 0;
     lastOrphanFound = 0;
     lastSubscribeNetworkError = 0;
@@ -308,7 +308,7 @@ class WebsocketTransport implements StreamingTransportInterface {
             return;
         }
 
-        this.reconnectTimeout = setTimeout(
+        this.reconnectTimeout = window.setTimeout(
             this.restartConnection,
             DEFAULT_RECONNECT_DELAY,
         );

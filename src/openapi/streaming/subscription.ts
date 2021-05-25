@@ -184,7 +184,7 @@ class Subscription {
     connectionAvailable;
     currentState: SubscriptionState = this.STATE_UNSUBSCRIBED;
     updatesBeforeSubscribed: null | StreamingMessage[] = null;
-    networkErrorSubscribingTimer: null | ReturnType<typeof setTimeout> = null;
+    networkErrorSubscribingTimer: null | number = null;
     inactivityTimeout: number | undefined;
     latestActivity: number | undefined;
     SchemaName: string | undefined | null;
@@ -685,7 +685,7 @@ class Subscription {
             );
 
             // let streaming know we got a network error
-            this.networkErrorSubscribingTimer = setTimeout(() => {
+            this.networkErrorSubscribingTimer = window.setTimeout(() => {
                 this.networkErrorSubscribingTimer = null;
 
                 // we did not go offline and we did not receive any commands in the meantime
