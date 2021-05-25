@@ -157,13 +157,13 @@ describe('microEmitter', () => {
     });
 
     it('can cope with multiple calls to off', () => {
-        eventEmitter.on('test', spyTest);
-        eventEmitter.on('test', spyTest1);
-        eventEmitter.off('test', spyTest1);
-        eventEmitter.off('test', spyTest1);
-        eventEmitter.off('test', spyTest1);
-
-        eventEmitter.trigger('test');
+        eventEmitter
+            .on('test', spyTest)
+            .on('test', spyTest1)
+            .off('test', spyTest1)
+            .off('test', spyTest1)
+            .off('test', spyTest1)
+            .trigger('test');
 
         expect(spyTest.mock.calls.length).toEqual(1);
         expect(spyTest1.mock.calls.length).toEqual(0);
@@ -186,8 +186,7 @@ describe('microEmitter', () => {
     });
 
     it('triggers a one() registered subscriber once', () => {
-        eventEmitter.one('test', spyTest);
-        eventEmitter.on('test', spyTest1);
+        eventEmitter.one('test', spyTest).on('test', spyTest1);
 
         eventEmitter.trigger('test');
         eventEmitter.trigger('test');

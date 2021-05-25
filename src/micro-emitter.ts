@@ -1,6 +1,9 @@
 export type EventTypes = Record<string, Callback>;
 
-export interface IEventEmitter<Events extends EventTypes> {
+export interface IEventEmitter<
+    Events extends EventTypes,
+    ChainedType = IEventEmitter<any, any>
+> {
     /**
      * Register an event handler for single invocation (subscribe)
      * @param eventType - The event type to listen to
@@ -11,7 +14,7 @@ export interface IEventEmitter<Events extends EventTypes> {
         eventType: Event,
         onFunction: Events[Event],
         that?: any,
-    ): any;
+    ): ChainedType extends IEventEmitter<any> ? this : ChainedType;
 
     /**
      * Register an event handler (subscribe)
@@ -24,7 +27,7 @@ export interface IEventEmitter<Events extends EventTypes> {
         eventType: Event,
         onFunction: Events[Event],
         that?: any,
-    ): any;
+    ): ChainedType extends IEventEmitter<any> ? this : ChainedType;
 
     /**
      * Stop listening to events (unsubscribe)
@@ -36,7 +39,7 @@ export interface IEventEmitter<Events extends EventTypes> {
         eventType?: Event | null,
         onFunction?: Events[Event] | null,
         that?: any,
-    ): any;
+    ): ChainedType extends IEventEmitter<any> ? this : ChainedType;
 
     /**
      * Triggers an event
@@ -46,7 +49,7 @@ export interface IEventEmitter<Events extends EventTypes> {
     trigger<Event extends keyof Events>(
         eventType: Event,
         ...args: Parameters<Events[Event]>
-    ): any;
+    ): ChainedType extends IEventEmitter<any> ? this : ChainedType;
 }
 
 export interface Callback {
