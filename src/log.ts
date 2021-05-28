@@ -48,6 +48,12 @@ log.INFO = 'info';
  */
 log.WARN = 'warn';
 
+
+dsf asdf
+addEventListener( fsdf
+sda
+)
+
 /**
  * the error event constant.
  * @alias saxo.log.ERROR
